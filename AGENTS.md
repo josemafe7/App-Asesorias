@@ -67,8 +67,11 @@ cuál y propón otra forma.
 3. Cada fase empieza con un plan que yo apruebo antes de tocar nada. Para prepararlo, lee `docs/spec.md`,
    `docs/architecture.md`, `docs/security.md`, `docs/conventions.md`, `docs/testing.md` y, si existe,
    `DESIGN.md`. El plan dice qué vas a crear o cambiar, qué vas a instalar, qué riesgos de seguridad tiene,
-   qué pruebas añadirás y cómo comprobaremos que funciona.
-4. Al terminar una fase: pasa los comandos de «Cómo se arranca y se prueba», repasa `docs/security.md`,
+   qué pruebas añadirás y cómo comprobaremos que funciona. Si la fase es grande, va por tramos que se
+   puedan guardar por separado: apúntalos debajo de la fase en `docs/spec.md` y, al acabar cada uno, pasa
+   `pnpm check`, márcalo y haz un commit de guardado. Si la conversación se llena, dímelo al acabar un
+   tramo y seguimos en una nueva. El cierre completo es uno solo, al final de la fase.
+4. Al terminar una fase: pasa `pnpm check` y `pnpm test:e2e`, repasa `docs/security.md`,
    ejecuta `pnpm audit` y pide la revisión de `docs/review.md`. Enséñame la prueba de que funciona: qué
    reglas de la especificación quedan comprobadas y qué ha dicho la revisión, en lenguaje llano. Después
    márcala como terminada en `docs/spec.md`, guarda las decisiones nuevas, pon al día la documentación y
@@ -118,10 +121,9 @@ si ha cambiado, avísame y usa lo actual. Instala siempre la última versión es
 Estos comandos los prepara la fase 1. Si alguno cambia, actualiza esta sección.
 
 - `pnpm dev`: arranca la app en local.
-- `pnpm lint` y `pnpm typecheck`: revisan el código y los tipos.
-- `pnpm test`: pruebas de Vitest, sin modo vigilancia.
-- `pnpm test:e2e`: pruebas de Playwright.
-- `pnpm build`: compila la app como en producción.
+- `pnpm check`: lint, tipos y pruebas de Vitest, de una vez y en segundos. Es lo que se pasa al construir.
+- `pnpm test:e2e`: compila la app como en producción y la recorre con Playwright. Se pasa al cerrar la
+  fase.
 - `pnpm seed`: carga los datos de ejemplo y los usuarios de prueba. Nunca donde hay datos reales.
 
 ## Documentación

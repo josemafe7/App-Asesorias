@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "check": "pnpm lint && pnpm typecheck && pnpm test",
     "seed": "node --env-file=.env.local scripts/seed.mts"
   },
   "dependencies": {

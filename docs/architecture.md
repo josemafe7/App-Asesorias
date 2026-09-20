@@ -16,8 +16,8 @@ reglas, se usa en tres sitios contados: el seed, la limpieza de las pruebas y la
 administrador que **crean o borran una cuenta** (invitar a alguien), que es lo único que Supabase no deja
 hacer de otra forma. Todo lo demás, también en esas acciones, pasa por la clave publicable y sus políticas.
 
-Otro servicio: Resend envía los correos (las invitaciones desde la fase 2 y los recordatorios en la fase 7).
-Y en la fase 5 entra OpenRouter, que lee los documentos subidos y propone sus datos.
+Otro servicio: Resend envía los correos (las invitaciones desde la fase 2 y los recordatorios en el
+tramo 3e). Y en el tramo 3c entra OpenRouter, que lee los documentos subidos y propone sus datos.
 
 ## Piezas
 
@@ -28,9 +28,9 @@ Y en la fase 5 entra OpenRouter, que lee los documentos subidos y propone sus da
 | Base de datos | Perfiles, clientes, expedientes, solicitudes y documentos | PostgreSQL en Supabase, con Row Level Security |
 | Usuarios | Entrar, invitar y recuperar la contraseña | Supabase Auth |
 | Archivos | Las facturas y los tickets subidos | Supabase Storage, en un bucket privado |
-| Lectura de documentos | Propone fecha, proveedor, importes y categoría | OpenRouter (fase 5) |
-| Correo | Invitaciones y recordatorios | Resend (fase 2 y fase 7) |
-| Publicación | Imagen de Docker detrás de Traefik, con HTTPS | VPS de Hostinger con Dokploy (fase 8) |
+| Lectura de documentos | Propone fecha, proveedor, importes y categoría | OpenRouter (tramo 3c) |
+| Correo | Invitaciones y recordatorios | Resend (fase 2 y tramo 3e) |
+| Publicación | Imagen de Docker detrás de Traefik, con HTTPS | VPS de Hostinger con Dokploy (tramo 3f) |
 
 ## Cómo se organiza el código
 

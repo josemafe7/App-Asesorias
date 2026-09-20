@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 import { rutaSesion } from './sesiones'
-import { correoDePrueba, crearEmpresa, elegirOpcion, seedUser } from './utils'
+import { asignarAsesor, correoDePrueba, crearEmpresa, elegirOpcion, seedUser } from './utils'
 
 /**
  * El administrador invita a las personas, les cambia el rol y las desactiva.
@@ -141,4 +141,35 @@ test('A11 · el administrador no puede cambiarse el rol ni desactivarse', async 
   await expect(page.getByText(/no puedes cambiar tu propio rol/i)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Desactivar usuario' })).toBeHidden()
   await expect(page.getByRole('button', { name: 'Guardar cambios' })).toBeHidden()
+})
+
+// C9 · Un asesor con empresas asignadas no se desactiva ni cambia de rol: primero se reasignan, para
+// que ninguna empresa se quede con un asesor que ya no la lleva.
+test('C9 · un asesor con clientes no se puede desactivar ni cambiar de rol', async ({ page }) => {
+  const empresa = await crearEmpresa(page)
+  const asesora = 'E2E Asesora con clientes'
+  const correo = await invitar(page, { nombre: asesora, rol: 'Asesor' })
+  // Se espera a que la invitación esté hecha antes de cambiar de pantalla: si no, el navegador corta la
+  // petición que la estaba guardando.
+  await expect(page.getByText(/Invitación enviada/)).toBeVisible()
+
+  await asignarAsesor(page, empresa.id, asesora)
+
+  await page.goto('/admin/usuarios')
+  await page.getByRole('row', { name: new RegExp(correo) }).getByRole('link').click()
+  await expect(page.getByRole('heading', { name: asesora })).toBeVisible()
+
+  // Mientras lleve empresas no hay botón de desactivar.
+  await expect(page.getByRole('button', { name: 'Desactivar usuario' })).toHaveCount(0)
+
+  // Y si se intenta cambiarle el rol, la app lo impide y dice cuántas empresas hay que mover.
+  await elegirOpcion(page.getByLabel('Rol'), { label: 'Administrador' })
+  await page.getByRole('button', { name: 'Guardar cambios' }).click()
+
+  await expect(page.locator('form').getByRole('alert')).toContainText(/1 cliente/)
+
+  // Y sigue siendo asesora: el desplegable guarda lo que se acaba de elegir, así que se mira lo que hay
+  // guardado de verdad volviendo a cargar la ficha.
+  await page.reload()
+  await expect(page.getByLabel('Rol')).toHaveValue('advisor')
 })

@@ -1,25 +1,30 @@
 # Pruebas
 
-Qué se prueba y cómo, para demostrar que el código funciona.
+Qué se prueba y cómo, para demostrar que el código funciona sin que las pruebas frenen el proyecto.
 
 ## Qué se prueba
 
-- Cada fase añade pruebas de lo que construye.
-- El «se comprueba» de cada fase de `docs/spec.md` se convierte, siempre que se pueda, en una prueba de
-  Playwright que hace lo mismo que haría la persona.
-- Las reglas de «Qué hace» y los permisos de «Quién puede hacer qué» de `docs/spec.md` son la lista de lo
-  que hay que probar: cada una tiene su prueba siempre que se pueda, la más sencilla que la demuestre.
-- Las pruebas de esas reglas y permisos se escriben antes que el código que las cumple, leyendo la
-  especificación y no el código: primero fallan y después se construye hasta que pasan. Es la forma de
-  trabajar, no algo que haya que enseñarme ni preguntarme.
-- La lógica (cálculos, reglas del negocio, validaciones, permisos) se prueba con Vitest, también con datos
-  incorrectos.
-- Cada dato protegido tiene una prueba de que otro usuario no puede verlo ni cambiarlo.
-- Cuando se corrige un fallo de funcionamiento, primero se escribe una prueba que lo reproduce. Los textos,
-  los colores y los detalles visuales no se prueban.
+- Cada fase añade pruebas de lo que construye. Las reglas de «Qué hace» y los permisos de «Quién puede
+  hacer qué» de `docs/spec.md` son la lista de lo que hay que probar: cada una tiene su prueba siempre que
+  se pueda, la más sencilla y rápida que la demuestre.
+- Casi todo se prueba sin navegador, con Vitest, que tarda segundos: la lógica (cálculos, reglas del
+  negocio, validaciones), también con datos incorrectos, y los permisos, llamando al acceso a datos o a la
+  base de datos con usuarios distintos. Cada dato protegido tiene una prueba de que otro usuario no puede
+  verlo ni cambiarlo.
+- Con Playwright, que es lento, solo se recorren pantallas: el «se comprueba» de cada fase, haciendo lo
+  mismo que haría la persona, y poco más. Una regla que se puede demostrar sin navegador no lleva prueba
+  de Playwright.
+- Las pruebas de Vitest se escriben antes que el código que las cumple, leyendo la especificación y no el
+  código: primero fallan y después se construye hasta que pasan. La de Playwright se escribe cuando la
+  pantalla ya existe, siguiendo también la especificación.
+- Cuando se corrige un fallo de funcionamiento, primero se escribe una prueba que lo reproduce. Los
+  textos, los colores y los detalles visuales no se prueban.
 
 ## Cómo
 
+- Mientras se construye se pasa `pnpm check` y solo las pruebas de lo que se está tocando, con la salida
+  corta: los fallos y el resumen. `pnpm test:e2e` entero se pasa una vez, al cerrar la fase, sin ningún
+  servidor arrancado para que compile de verdad: así no hace falta otro `pnpm build`.
 - Vitest, con la prueba junto al código que prueba (`invoice.test.ts`). No admite componentes de servidor
   asíncronos: esos se prueban con Playwright.
 - Playwright, en `e2e/` y con Chromium (`pnpm exec playwright install chromium` la primera vez). Arranca la

@@ -262,6 +262,29 @@ test('un asesor no puede dar de alta clientes, aunque llame a la base de datos d
   expect(response.ok(), 'un asesor ha conseguido dar de alta un cliente').toBe(false)
 })
 
+// Un usuario cliente ve la ficha de su empresa, pero no la edita («Quién puede hacer qué»). Que en la
+// pantalla no haya botón de guardar no basta: se comprueba atacando la tabla de frente.
+test('un cliente no puede cambiar los datos de su propia empresa', async ({ request }) => {
+  const token = sessionToken(seedUser('espiga-pablo').email)
+
+  const response = await request.patch(`${SUPABASE_URL}/rest/v1/clients?tax_id=eq.B12345678`, {
+    headers: {
+      apikey: PUBLISHABLE_KEY!,
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+    },
+    data: { legal_name: 'E2E Panadería renombrada por su cliente' },
+  })
+
+  // No cambia ninguna fila: escribir en los clientes es solo del administrador.
+  expect(await response.json()).toEqual([])
+
+  // Y su empresa se sigue llamando igual.
+  const clients = (await readTable(request, 'clients', token)) as { legal_name: string }[]
+  expect(clients[0].legal_name).toBe('Panadería La Espiga SL')
+})
+
 test('un asesor no puede crear perfiles ni cambiar el rol de nadie', async ({ request }) => {
   const token = sessionToken(seedUser('marta').email)
 

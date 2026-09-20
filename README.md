@@ -68,9 +68,8 @@ también los limpia.
 | Comando | Qué hace |
 |---|---|
 | `pnpm dev` | Arranca la app en local |
-| `pnpm lint` | Revisa el código |
-| `pnpm typecheck` | Revisa los tipos |
-| `pnpm test` | Pruebas de lógica (Vitest) |
+| `pnpm check` | Revisa el código y los tipos y pasa las pruebas de lógica (Vitest), de una vez |
+| `pnpm lint`, `pnpm typecheck`, `pnpm test` | Cada una de esas tres por separado |
 | `pnpm test:e2e` | Pruebas que recorren la app como un usuario (Playwright) |
 | `pnpm build` | Compila como en producción |
 | `pnpm seed` | Carga los datos de ejemplo |

@@ -4,8 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 
-import { getClient } from '@/data/clients'
-import { findUserByEmail, insertProfile, setUserActive, setUserRole } from '@/data/users'
+import { countClientsByAdvisor, getClient } from '@/data/clients'
+import { findUserByEmail, getUser, insertProfile, setUserActive, setUserRole } from '@/data/users'
 import {
   logAccountStatusChange,
   logInvitation,
@@ -32,6 +32,14 @@ const MAX_INVITATIONS = 20
 const INVITATION_WINDOW_MS = 60 * 60 * 1000
 
 const idSchema = z.uuid()
+
+/** C9 · Cuántas empresas lleva esta persona, si es asesora. Cero si no lo es. */
+async function clientesQueLleva(userId: string): Promise<number> {
+  const user = await getUser(userId)
+  if (user?.role !== 'advisor') return 0
+
+  return countClientsByAdvisor(userId)
+}
 
 /** Un aviso genérico: lo que ha fallado de verdad se queda en el registro del servidor. */
 const GENERIC_INVITE_ERROR = 'No se ha podido invitar a esta persona. Inténtalo otra vez.'
@@ -130,6 +138,16 @@ export async function changeUserRoleAction(
     return { error: 'No puedes cambiar tu propio rol.' }
   }
 
+  // C9 · Si deja de ser asesora, sus empresas se quedarían con un asesor que ya no las lleva.
+  if (role !== 'advisor') {
+    const cuantos = await clientesQueLleva(userId)
+    if (cuantos > 0) {
+      return {
+        error: `Esta persona lleva ${cuantos === 1 ? '1 cliente' : `${cuantos} clientes`}. Reasigna sus empresas a otro asesor antes de cambiarle el rol.`,
+      }
+    }
+  }
+
   if (clientId && !(await getClient(clientId))) {
     return { fieldErrors: { clientId: 'Elige una empresa de la lista.' } }
   }
@@ -160,6 +178,14 @@ export async function toggleUserActiveAction(formData: FormData): Promise<void> 
   }
 
   const isActive = formData.get('isActive') === 'true'
+
+  // C9 · Un asesor con empresas asignadas no se desactiva. El botón no está en la pantalla; esto es
+  // por si alguien llama a la acción por su cuenta.
+  if (!isActive && (await clientesQueLleva(id.data)) > 0) {
+    console.warn('[usuarios] intento de desactivar a un asesor con clientes', { actor: admin.id })
+    return
+  }
+
   await setUserActive(id.data, isActive)
 
   logAccountStatusChange({ actor: admin.id, user: id.data, isActive })

@@ -27,7 +27,7 @@ añadir ninguna dependencia.
 
 - El texto del correo vive en el repositorio (`src/lib/email/invitation.ts`), se revisa como cualquier otro
   código y se prueba sin llamar a ningún servicio.
-- La fase 7 reutiliza el mismo envío para los recordatorios.
+- El tramo 3e reutiliza el mismo envío para los recordatorios.
 - Crear la cuenta necesita la clave secreta de Supabase en el servidor. Se usa solo para eso y solo después
   de comprobar que quien lo pide es administrador (ver `docs/architecture.md`).
 - Si el correo no sale, la cuenta recién creada se borra: no quedan usuarios a medias.

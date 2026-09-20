@@ -8,7 +8,7 @@ import { AppShell } from '@/components/app-shell'
 import { Notice } from '@/components/notice'
 import { ActivePill } from '@/components/status-pill'
 import { Button } from '@/components/ui/button'
-import { listClients } from '@/data/clients'
+import { countClientsByAdvisor, listClients } from '@/data/clients'
 import { getUser } from '@/data/users'
 import { APP_NAME } from '@/lib/app-config'
 import { requireRole } from '@/lib/auth-guards'
@@ -26,6 +26,11 @@ function Seccion({ title, children }: { title: string; children: React.ReactNode
       <div className="mt-4">{children}</div>
     </section>
   )
+}
+
+/** «1 cliente» o «3 clientes», para no escribir «1 clientes». */
+function textoClientes(cuantos: number): string {
+  return cuantos === 1 ? '1 cliente' : `${cuantos} clientes`
 }
 
 // Lo que llega por la dirección también se valida, aunque sea un aviso (docs/security.md).
@@ -49,6 +54,9 @@ export default async function FichaUsuarioPage({
 
   const clients = await listClients()
   const empresas = clients.map((client) => ({ id: client.id, legalName: client.legalName }))
+
+  // C9 · Mientras lleve empresas, ni cambia de rol ni se desactiva: primero se reasignan.
+  const cuantosClientes = user.role === 'advisor' ? await countClientsByAdvisor(user.id) : 0
 
   // A11 · Consigo mismo no: ni cambiarse el rol ni desactivarse.
   const esUnoMismo = user.id === profile.id
@@ -81,6 +89,18 @@ export default async function FichaUsuarioPage({
       ) : (
         <div className="mt-6 flex flex-col gap-4">
           <Seccion title="Rol y empresa">
+            {cuantosClientes > 0 ? (
+              <p className="mb-4 max-w-[620px] text-[15px] leading-relaxed text-muted-foreground">
+                Lleva {textoClientes(cuantosClientes)}. Para cambiarle el rol, antes hay que{' '}
+                <Link
+                  href={`/admin/clientes?asesor=${user.id}`}
+                  className="rounded-sm font-medium underline underline-offset-2 hover:text-urgent"
+                >
+                  reasignar sus empresas
+                </Link>{' '}
+                a otro asesor.
+              </p>
+            ) : null}
             <UserRoleForm
               key={`${user.role}-${user.clientId ?? ''}`}
               userId={user.id}
@@ -91,22 +111,31 @@ export default async function FichaUsuarioPage({
           </Seccion>
 
           <Seccion title="Estado de la cuenta">
-            <p className="max-w-[620px] text-[15px] leading-relaxed text-muted-foreground">
-              {user.isActive
-                ? 'Si la desactivas, esta persona deja de entrar en el portal aunque acierte su contraseña. Puedes volver a activarla cuando quieras.'
-                : 'Está desactivada: no entra en el portal aunque acierte su contraseña.'}
-            </p>
-            <form action={toggleUserActiveAction} className="mt-4">
-              <input type="hidden" name="userId" value={user.id} />
-              <input type="hidden" name="isActive" value={user.isActive ? 'false' : 'true'} />
-              <Button
-                type="submit"
-                variant={user.isActive ? 'destructive' : 'outline'}
-                className="h-[42px] px-5"
-              >
-                {user.isActive ? 'Desactivar usuario' : 'Activar usuario'}
-              </Button>
-            </form>
+            {cuantosClientes > 0 ? (
+              <p className="max-w-[620px] text-[15px] leading-relaxed text-muted-foreground">
+                No se puede desactivar mientras lleve {textoClientes(cuantosClientes)}: sus empresas se
+                quedarían con un asesor que ya no las lleva. Reasígnalas a otro asesor y vuelve aquí.
+              </p>
+            ) : (
+              <>
+                <p className="max-w-[620px] text-[15px] leading-relaxed text-muted-foreground">
+                  {user.isActive
+                    ? 'Si la desactivas, esta persona deja de entrar en el portal aunque acierte su contraseña. Puedes volver a activarla cuando quieras.'
+                    : 'Está desactivada: no entra en el portal aunque acierte su contraseña.'}
+                </p>
+                <form action={toggleUserActiveAction} className="mt-4">
+                  <input type="hidden" name="userId" value={user.id} />
+                  <input type="hidden" name="isActive" value={user.isActive ? 'false' : 'true'} />
+                  <Button
+                    type="submit"
+                    variant={user.isActive ? 'destructive' : 'outline'}
+                    className="h-[42px] px-5"
+                  >
+                    {user.isActive ? 'Desactivar usuario' : 'Activar usuario'}
+                  </Button>
+                </form>
+              </>
+            )}
           </Seccion>
         </div>
       )}

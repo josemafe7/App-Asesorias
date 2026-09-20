@@ -98,6 +98,25 @@ export async function listAdvisors(): Promise<Advisor[]> {
 }
 
 /**
+ * Cuántas empresas lleva un asesor (C9).
+ *
+ * Antes de desactivarlo o de cambiarle el rol hay que reasignarlas: si no, la empresa se queda con un
+ * asesor que ya no la lleva y las pantallas dejan de decir la verdad.
+ */
+export async function countClientsByAdvisor(advisorId: string): Promise<number> {
+  const supabase = await createClient()
+
+  const { count, error } = await supabase
+    .from('clients')
+    .select('id', { count: 'exact', head: true })
+    .eq('advisor_id', advisorId)
+
+  if (error) throw new Error(`No se han podido contar los clientes del asesor: ${error.message}`)
+
+  return count ?? 0
+}
+
+/**
  * El asesor asignado a una empresa. Un usuario cliente puede leer el suyo, y solo el suyo, para
  * escribirle (A10).
  */

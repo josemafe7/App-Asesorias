@@ -95,6 +95,9 @@ test('C6 · un cliente desactivado se puede seguir encontrando en la lista del a
 
   await page.goto(`/admin/clientes/${empresa.id}`)
   await page.getByRole('button', { name: 'Desactivar cliente' }).click()
+  // Se espera a ver el cambio antes de irse, como haría cualquiera: al cambiar de pantalla en el mismo
+  // instante del clic, el navegador corta la petición que lo estaba guardando.
+  await expect(page.getByText('Desactivado', { exact: true })).toBeVisible()
 
   await page.goto('/admin/clientes?estado=inactivos')
   await expect(page.getByRole('cell', { name: empresa.legalName })).toBeVisible()

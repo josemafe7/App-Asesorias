@@ -21,7 +21,9 @@ publicar sigue siendo aparte, en una conversación nueva.
 ## Qué hace quien revisa
 
 No cambia nada: lee, ejecuta solo comandos que no modifican nada y devuelve una lista. No se fía de lo que
-le cuenten sobre lo que se ha hecho: lo comprueba en la especificación, en el código y en las pruebas.
+le cuenten sobre lo que se ha hecho: lo comprueba en la especificación, en el código y en las pruebas. No
+repite todas las pruebas, que ya las ha pasado quien construye: ejecuta una solo cuando necesite comprobar
+algo concreto.
 
 1. Lee `docs/spec.md` y localiza las reglas de «Qué hace» y los permisos de «Quién puede hacer qué» que
    tocan a la fase.

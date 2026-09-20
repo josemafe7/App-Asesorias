@@ -39,6 +39,9 @@ Cada línea es una regla que se puede comprobar: «Cuando pasa esto, la app hace
   mensajería dentro del portal.
 - A11 · Un administrador no puede quitarse a sí mismo el rol ni desactivar su propia cuenta. La app no se
   lo permite y le explica por qué, para que la asesoría nunca se quede sin administrador.
+- A12 · En la lista de usuarios, el administrador puede filtrar por rol y por estado (activos,
+  desactivados o todos).
+- A13 · El panel del administrador muestra cuántos clientes activos y cuántos asesores hay.
 
 ### Clientes y asignación
 
@@ -53,6 +56,11 @@ Cada línea es una regla que se puede comprobar: «Cuando pasa esto, la app hace
   expedientes y documentos se conservan.
 - C7 · Cada usuario de tipo cliente pertenece a una empresa. Una empresa puede tener uno o varios usuarios,
   y todos ven lo mismo de esa empresa.
+- C8 · En la lista de clientes, el administrador puede filtrar por asesor y por estado (activos,
+  desactivados o todos).
+- C9 · Un asesor que lleva empresas asignadas no se puede desactivar ni cambiar de rol: la app lo impide
+  y dice cuántas hay que reasignar antes, para que ninguna empresa se quede con un asesor que ya no la
+  lleva.
 
 ### Expedientes trimestrales
 
@@ -157,7 +165,8 @@ concreto, no solo sobre el rol, y también con reglas por filas en la base de da
 **Administrador**
 - Ver y hacer todo lo de cualquier cliente.
 - Crear, invitar, desactivar y reactivar usuarios de los tres roles, y cambiarles el rol. Consigo mismo
-  no: no puede cambiarse el rol ni desactivarse (A11).
+  no: no puede cambiarse el rol ni desactivarse (A11). Con un asesor que aún lleva empresas, tampoco:
+  antes hay que reasignarlas (C9).
 - Dar de alta y editar clientes, y asignarlos o reasignarlos a un asesor.
 - Abrir y cerrar expedientes, crear solicitudes, subir documentos, revisar, aprobar, rechazar y exportar,
   en las mismas pantallas que usa el asesor y con cualquier cliente.
@@ -222,25 +231,30 @@ clientes.
 - [x] Fase 2 · Usuarios, clientes y asignación — se comprueba: el administrador crea un cliente, crea su
       usuario y se lo asigna a un asesor; ese asesor lo ve; el otro asesor no lo ve ni escribiendo la
       dirección directa. (A5, A9, A10, A11, C1-C7)
-- [ ] Fase 3 · Expedientes trimestrales y solicitudes — se comprueba: el asesor abre 2026-T1 de un cliente y
-      crea dos solicitudes; el cliente las ve con su fecha límite; un cliente de otra empresa no ve nada de
-      eso. (E1-E5, S1-S6)
-- [ ] Fase 4 · Subida de documentos — se comprueba: el cliente sube una foto y un PDF y los ve en su
-      expediente; un archivo de 20 MB y un .exe se rechazan; otro cliente no puede abrirlos ni con el enlace
-      directo. (D1-D8)
-- [ ] Fase 5 · Lectura automática con IA — se comprueba: se suben tres documentos de ejemplo, uno legible,
-      uno ilegible y uno que intenta dar órdenes; el primero sale relleno, el segundo sale vacío y marcado
-      como pendiente, y el tercero no provoca ninguna acción. (I1-I8)
-- [ ] Fase 6 · Revisión y aprobación del asesor — se comprueba: el asesor corrige el proveedor y aprueba; el
-      cliente ve «aprobado» y los datos, pero nunca la propuesta original; un documento con campos
-      pendientes no deja aprobarse; un asesor no asignado no puede abrirlo. (R1-R8)
-- [ ] Fase 7 · Recordatorios por correo y exportación CSV — se comprueba: con la fecha límite de una
-      solicitud puesta en ayer, el trabajo diario manda un correo y solo uno; el CSV descargado tiene las
-      columnas acordadas y solo las filas aprobadas. (M1-M7, X1-X6)
-- [ ] Fase 8 · Publicación en el VPS — se comprueba: la asesoría entra por su dominio con HTTPS y hace el
-      recorrido completo. Ojo: hasta esta fase las pruebas usan `next start`, que sirve la compilación
-      normal, mientras que en el VPS corre la versión reducida para Docker. Al montar la imagen hay que
-      copiarle los archivos estáticos y comprobar que las pantallas se ven bien, no solo que responden.
+- [ ] Fase 3 · El resto de la app: expedientes, documentos, IA, revisión, recordatorios, exportación y
+      publicación — se comprueba: el asesor abre 2026-T1 de un cliente y crea dos solicitudes, el cliente
+      las ve con su fecha límite y un cliente de otra empresa no ve nada de eso; el cliente sube una foto y
+      un PDF y los ve en su expediente, un archivo de 20 MB y un .exe se rechazan, y otro cliente no puede
+      abrirlos ni con el enlace directo; de tres documentos de ejemplo, el legible sale relleno, el ilegible
+      sale vacío y marcado como pendiente, y el que intenta dar órdenes no provoca ninguna acción; el asesor
+      corrige el proveedor y aprueba, el cliente ve «aprobado» y los datos pero nunca la propuesta original,
+      un documento con campos pendientes no deja aprobarse y un asesor no asignado no puede abrirlo; con la
+      fecha límite de una solicitud puesta en ayer, el trabajo diario manda un correo y solo uno; el CSV
+      descargado tiene las columnas acordadas y solo las filas aprobadas; y la asesoría entra por su dominio
+      con HTTPS y hace el recorrido completo de «Cómo se comprueba que todo funciona».
+      (E1-E5, S1-S6, D1-D8, I1-I8, R1-R8, M1-M7, X1-X6)
+
+      Ojo al publicar: hasta aquí las pruebas usan `next start`, que sirve la compilación normal, mientras
+      que en el VPS corre la versión reducida para Docker. Al montar la imagen hay que copiarle los
+      archivos estáticos y comprobar que las pantallas se ven bien, no solo que responden.
+
+      Tramos. Cada uno acaba con `pnpm check` en verde, su marca aquí y un commit de guardado:
+      - [ ] 3a · Expedientes y solicitudes (E1-E5, S1-S6)
+      - [ ] 3b · Subida de documentos (D1-D8)
+      - [ ] 3c · Lectura automática con IA (I1-I8)
+      - [ ] 3d · Revisión y aprobación (R1-R8)
+      - [ ] 3e · Recordatorios y exportación CSV (M1-M7, X1-X6)
+      - [ ] 3f · Publicación en el VPS
 
 ## Cómo se comprueba que todo funciona
 
