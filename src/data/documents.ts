@@ -29,12 +29,13 @@ export type StoredDocument = {
   sizeBytes: number
   storagePath: string
   status: DocumentStatus
+  rejectionReason: string | null
   uploadedBy: string
   createdAt: string
 }
 
 const DOCUMENT_COLUMNS =
-  'id, dossier_id, request_id, original_name, mime_type, size_bytes, storage_path, status, uploaded_by, created_at'
+  'id, dossier_id, request_id, original_name, mime_type, size_bytes, storage_path, status, rejection_reason, uploaded_by, created_at'
 
 type DocumentRow = {
   id: string
@@ -45,6 +46,7 @@ type DocumentRow = {
   size_bytes: number
   storage_path: string
   status: DocumentStatus
+  rejection_reason: string | null
   uploaded_by: string
   created_at: string
 }
@@ -59,6 +61,7 @@ function toDocument(row: DocumentRow): StoredDocument {
     sizeBytes: row.size_bytes,
     storagePath: row.storage_path,
     status: row.status,
+    rejectionReason: row.rejection_reason,
     uploadedBy: row.uploaded_by,
     createdAt: row.created_at,
   }

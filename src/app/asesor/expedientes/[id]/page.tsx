@@ -125,7 +125,7 @@ export default async function ExpedienteDelAsesorPage({
       <section className="mt-4 rounded-xl border bg-card p-6 shadow-card">
         <h2 className="text-[22px] font-semibold tracking-[-0.01em]">Documentos</h2>
 
-        <DocumentList documents={documents} canDelete={() => true} />
+        <DocumentList documents={documents} canDelete={() => true} review />
 
         <div className="mt-6 border-t pt-5">
           <h3 className="text-[17px] font-semibold">Subir un documento</h3>

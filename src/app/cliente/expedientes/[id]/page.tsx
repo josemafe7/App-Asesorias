@@ -9,6 +9,7 @@ import { DocumentList } from '@/components/document-list'
 import { Notice } from '@/components/notice'
 import { DossierPill, RequestPill } from '@/components/status-pill'
 import { UploadDocumentForm } from '@/components/upload-document-form'
+import { listCategories, listDocumentData } from '@/data/document-data'
 import { listDocuments } from '@/data/documents'
 import { getDossier } from '@/data/dossiers'
 import { listRequests } from '@/data/requests'
@@ -40,6 +41,13 @@ export default async function ExpedienteDelClientePage({
   const [requests, documents] = await Promise.all([
     listRequests(dossier.id),
     listDocuments(dossier.id),
+  ])
+
+  // R7 · Los datos de un documento solo se ven cuando está aprobado: la consulta devuelve esos y
+  // ningunos más, porque así lo dice su política.
+  const [datos, categories] = await Promise.all([
+    listDocumentData(documents.map((document) => document.id)),
+    listCategories(),
   ])
 
   const hoy = todayInSpain()
@@ -107,6 +115,8 @@ export default async function ExpedienteDelClientePage({
         <DocumentList
           documents={documents}
           canDelete={(document) => document.status !== 'approved'}
+          data={datos}
+          categories={categories}
         />
 
         <div className="mt-6 border-t pt-5">
