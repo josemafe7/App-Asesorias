@@ -69,7 +69,7 @@ export async function saveDocumentAction(_prev: FormState, formData: FormData): 
       return { error: 'Faltan datos por rellenar: hasta que no estén, no se puede aprobar.' }
     }
 
-    const aprobado = await markApproved(documentId, profile.id)
+    const aprobado = await markApproved(documentId, { id: profile.id, fullName: profile.fullName })
     if (!aprobado.ok) return { error: aprobado.message }
   }
 

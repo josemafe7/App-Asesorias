@@ -1,0 +1,17 @@
+# Lo que no tiene que entrar en la imagen: ni pesa, ni hace falta, ni debe salir de aquí.
+node_modules
+.next
+.git
+.github
+.claude
+.agents
+e2e
+test-results
+playwright-report
+docs
+*.md
+!README.md
+.env
+.env.*
+!.env.example
+.vscode

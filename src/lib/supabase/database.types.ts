@@ -63,6 +63,7 @@ export type Database = {
           ai_proposal: Json | null
           approved_at: string | null
           approved_by: string | null
+          approved_by_name: string | null
           category_code: string | null
           document_id: string
           issue_date: string | null
@@ -80,6 +81,7 @@ export type Database = {
           ai_proposal?: Json | null
           approved_at?: string | null
           approved_by?: string | null
+          approved_by_name?: string | null
           category_code?: string | null
           document_id: string
           issue_date?: string | null
@@ -97,6 +99,7 @@ export type Database = {
           ai_proposal?: Json | null
           approved_at?: string | null
           approved_by?: string | null
+          approved_by_name?: string | null
           category_code?: string | null
           document_id?: string
           issue_date?: string | null

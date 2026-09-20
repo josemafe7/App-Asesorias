@@ -2,7 +2,7 @@ import 'server-only'
 
 import { APP_NAME } from '@/lib/app-config'
 
-import type { Email } from './invitation'
+import type { Email } from './email'
 
 /**
  * Envía un correo con Resend (docs/decisions/0004-correo-resend.md).

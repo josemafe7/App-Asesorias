@@ -6,10 +6,16 @@ import { z } from 'zod'
 
 import { getClient } from '@/data/clients'
 import { getDossier, insertDossier, setDossierStatus } from '@/data/dossiers'
+import { clientUserEmails, markReminderSent } from '@/data/reminders'
 import { cancelRequest, getRequest, insertRequest } from '@/data/requests'
 import { requireRole } from '@/lib/auth-guards'
 import { todayInSpain } from '@/lib/dates'
+import { buildReminderEmail } from '@/lib/email/reminder'
+import { sendEmail } from '@/lib/email/send'
+import { env } from '@/lib/env'
 import { fieldErrorsFrom, type FormState } from '@/lib/form'
+import { checkRateLimit } from '@/lib/rate-limit'
+import { canSendReminder } from '@/lib/reminders'
 import { dossierSchema } from '@/lib/validation/dossiers'
 import { buildRequestSchema } from '@/lib/validation/requests'
 
@@ -82,6 +88,58 @@ export async function cancelRequestAction(formData: FormData): Promise<void> {
   if (!request) return
 
   await cancelRequest(id.data)
+
+  revalidatePath(`/asesor/expedientes/${request.dossierId}`)
+}
+
+// Cada correo cuesta dinero (docs/security.md · «Límites y errores»). El freno de verdad es M7, que
+// obliga a esperar 24 horas entre dos recordatorios de la misma solicitud; esto es por si alguien
+// recorre todas las solicitudes a la vez.
+const MAX_REMINDERS = 60
+const REMINDER_WINDOW_MS = 60 * 60 * 1000
+
+/**
+ * M6 · El asesor manda a mano el recordatorio de una solicitud pendiente, esté vencida o no.
+ *
+ * M7 · Si no han pasado 24 horas desde el último, no se manda: el botón ni siquiera aparece, y esto
+ * lo vuelve a comprobar por si se llama a la acción por su cuenta.
+ */
+export async function sendReminderAction(formData: FormData): Promise<void> {
+  const profile = await requireRole('admin', 'advisor')
+
+  const id = idSchema.safeParse(formData.get('requestId'))
+  if (!id.success) return
+
+  const request = await getRequest(id.data)
+  if (!request) return
+
+  const dossier = await getDossier(request.dossierId)
+  if (!dossier) return
+
+  const puede = canSendReminder(
+    {
+      status: request.status,
+      dueDate: request.dueDate,
+      reminderSentAt: request.reminderSentAt ? new Date(request.reminderSentAt) : null,
+    },
+    { now: new Date(), today: todayInSpain(), automatic: false },
+  )
+  if (!puede.ok) return
+
+  const limite = checkRateLimit(`recordatorio:${profile.id}`, MAX_REMINDERS, REMINDER_WINDOW_MS)
+  if (!limite.allowed) return
+
+  const email = buildReminderEmail({
+    title: request.title,
+    dueDate: request.dueDate,
+    link: `${env.NEXT_PUBLIC_SITE_URL}/cliente`,
+  })
+
+  for (const destinatario of await clientUserEmails(dossier.clientId)) {
+    await sendEmail(destinatario, email)
+  }
+
+  await markReminderSent(request.id)
 
   revalidatePath(`/asesor/expedientes/${request.dossierId}`)
 }

@@ -1,5 +1,7 @@
 import { APP_NAME, FIRM_NAME } from '@/lib/app-config'
 
+import { escapeHtml, type Email } from './email'
+
 /**
  * A5 · El correo de invitación: el enlace con el que una persona entra por primera vez y pone su
  * contraseña.
@@ -13,17 +15,6 @@ import { APP_NAME, FIRM_NAME } from '@/lib/app-config'
  * se cambia, se cambia aquí, porque el correo y la pantalla se lo dicen a la persona.
  */
 export const INVITATION_EXPIRY_HOURS = 24
-
-/** El nombre lo escribe una persona en un formulario: en el HTML del correo va escapado. */
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-}
-
-export type Email = { subject: string; text: string; html: string }
 
 export function buildInvitationEmail({
   fullName,

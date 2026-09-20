@@ -17,10 +17,12 @@ import { listRequests } from '@/data/requests'
 import { APP_NAME } from '@/lib/app-config'
 import { requireRole } from '@/lib/auth-guards'
 import { formatDay, isOverdue, quarterLabel, todayInSpain } from '@/lib/dates'
+import { canSendReminder } from '@/lib/reminders'
 
 import { toggleDossierStatusAction } from '../actions'
 import { RequestForm } from '../_components/request-form'
 import { CancelRequestButton } from '../_components/cancel-request-button'
+import { ReminderButton } from '../_components/reminder-button'
 
 export const metadata: Metadata = { title: 'Expediente · ' + APP_NAME }
 
@@ -28,6 +30,7 @@ export const metadata: Metadata = { title: 'Expediente · ' + APP_NAME }
 const searchSchema = z.object({
   creada: z.literal('1').optional().catch(undefined),
   subido: z.literal('1').optional().catch(undefined),
+  sincsv: z.literal('1').optional().catch(undefined),
 })
 
 export default async function ExpedienteDelAsesorPage({
@@ -40,7 +43,7 @@ export default async function ExpedienteDelAsesorPage({
   const profile = await requireRole('admin', 'advisor')
 
   const { id } = await params
-  const { creada, subido } = searchSchema.parse(await searchParams)
+  const { creada, subido, sincsv } = searchSchema.parse(await searchParams)
 
   // R8 y C4 · Si el expediente no es de un cliente suyo, las políticas no lo devuelven: «no tienes
   // permiso», nunca el contenido.
@@ -54,6 +57,7 @@ export default async function ExpedienteDelAsesorPage({
   ])
 
   const hoy = todayInSpain()
+  const ahora = new Date()
   const abierto = dossier.status === 'open'
 
   return (
@@ -76,6 +80,12 @@ export default async function ExpedienteDelAsesorPage({
 
       {creada ? <Notice>Solicitud creada. Tu cliente ya la ve en su panel.</Notice> : null}
       {subido ? <Notice>Documento subido.</Notice> : null}
+      {/* X6 · Si no hay nada aprobado, no se descarga un archivo vacío: se explica. */}
+      {sincsv ? (
+        <p className="mt-4 rounded-md border border-urgent bg-card px-4 py-3 text-[15px] text-urgent">
+          Este trimestre no tiene todavía ningún documento aprobado, así que no hay nada que exportar.
+        </p>
+      ) : null}
 
       <section className="mt-6 rounded-xl border bg-card p-6 shadow-card">
         <h2 className="text-[22px] font-semibold tracking-[-0.01em]">Documentación pedida</h2>
@@ -107,12 +117,46 @@ export default async function ExpedienteDelAsesorPage({
                   overdue={isOverdue(request.dueDate, hoy)}
                 />
                 {request.status === 'pending' ? (
-                  <CancelRequestButton requestId={request.id} />
+                  <>
+                    {/* M6 y M7 · Se puede insistir, pero no antes de 24 horas. */}
+                    {canSendReminder(
+                      {
+                        status: request.status,
+                        dueDate: request.dueDate,
+                        reminderSentAt: request.reminderSentAt
+                          ? new Date(request.reminderSentAt)
+                          : null,
+                      },
+                      { now: ahora, today: hoy, automatic: false },
+                    ).ok ? (
+                      <ReminderButton requestId={request.id} />
+                    ) : (
+                      <span className="text-[13px] text-muted-foreground">
+                        Recordado hace menos de un día
+                      </span>
+                    )}
+                    <CancelRequestButton requestId={request.id} />
+                  </>
+                ) : null}
+                {request.reminderSentAt ? (
+                  <span className="w-full text-[13px] tabular-nums text-muted-foreground">
+                    Último recordatorio: {formatDay(request.reminderSentAt.slice(0, 10))}
+                  </span>
                 ) : null}
               </li>
             ))}
           </ul>
         )}
+
+        {/* X1 · El CSV de este trimestre, con sus documentos aprobados. */}
+        <div className="mt-6 border-t pt-5">
+          <a
+            href={`/asesor/expedientes/${dossier.id}/csv`}
+            className="rounded-sm text-[15px] font-medium underline-offset-2 hover:text-urgent hover:underline"
+          >
+            Descargar CSV de este trimestre
+          </a>
+        </div>
 
         <div className="mt-6 border-t pt-5">
           <h3 className="text-[17px] font-semibold">Pedir documentación</h3>

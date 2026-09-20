@@ -53,6 +53,10 @@ export default defineConfig({
     timeout: 240_000,
     // Las pruebas no llaman al servicio de correo: se escribe en la consola del servidor
     // (docs/testing.md y docs/decisions/0004-correo-resend.md).
-    env: { EMAIL_TRANSPORT: 'console', AI_TRANSPORT: 'fake' },
+    env: {
+      EMAIL_TRANSPORT: 'console',
+      AI_TRANSPORT: 'fake',
+      CRON_SECRET: 'secreto-de-pruebas',
+    },
   },
 })

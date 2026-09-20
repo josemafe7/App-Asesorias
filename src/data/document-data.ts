@@ -28,13 +28,14 @@ export type DocumentData = {
   pendingFields: string[]
   needsReview: boolean
   approvedBy: string | null
+  approvedByName: string | null
   approvedAt: string | null
 }
 
 export type ExpenseCategory = { code: string; label: string }
 
 const DATA_COLUMNS =
-  'document_id, issue_date, supplier, supplier_tax_id, tax_base, vat_rate, vat_amount, total, category_code, pending_fields, needs_review, approved_by, approved_at'
+  'document_id, issue_date, supplier, supplier_tax_id, tax_base, vat_rate, vat_amount, total, category_code, pending_fields, needs_review, approved_by, approved_by_name, approved_at'
 
 type DataRow = {
   document_id: string
@@ -49,6 +50,7 @@ type DataRow = {
   pending_fields: string[]
   needs_review: boolean
   approved_by: string | null
+  approved_by_name: string | null
   approved_at: string | null
 }
 
@@ -66,6 +68,7 @@ function toData(row: DataRow): DocumentData {
     pendingFields: row.pending_fields,
     needsReview: row.needs_review,
     approvedBy: row.approved_by,
+    approvedByName: row.approved_by_name,
     approvedAt: row.approved_at,
   }
 }
@@ -199,13 +202,20 @@ export async function saveReviewedData(
   return { ok: true }
 }
 
-/** R4 · Al aprobar se guarda quién y cuándo. */
-export async function markApproved(documentId: string, approvedBy: string): Promise<SaveResult> {
+/** R4 · Al aprobar se guarda quién y cuándo. El nombre se guarda además del identificador (X2). */
+export async function markApproved(
+  documentId: string,
+  approvedBy: { id: string; fullName: string },
+): Promise<SaveResult> {
   const supabase = await createClient()
 
   const { error: dataError } = await supabase
     .from('document_data')
-    .update({ approved_by: approvedBy, approved_at: new Date().toISOString() })
+    .update({
+      approved_by: approvedBy.id,
+      approved_by_name: approvedBy.fullName,
+      approved_at: new Date().toISOString(),
+    })
     .eq('document_id', documentId)
 
   if (dataError) return { ok: false, message: 'No se ha podido aprobar el documento.' }
