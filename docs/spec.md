@@ -34,6 +34,9 @@ Cada línea es una regla que se puede comprobar: «Cuando pasa esto, la app hace
 - A8 · Tras varios intentos fallidos seguidos de inicio de sesión desde el mismo sitio, la app deja de
   aceptar intentos durante un rato.
 - A9 · Los intentos fallidos de inicio de sesión y los cambios de rol quedan registrados.
+- A10 · Un usuario cliente tiene a mano un enlace «Escribir a mi asesor» que abre su propio programa de
+  correo con la dirección de su asesor asignado ya puesta. La app no guarda ni envía ese mensaje: no hay
+  mensajería dentro del portal.
 
 ### Clientes y asignación
 
@@ -121,10 +124,15 @@ Cada línea es una regla que se puede comprobar: «Cuando pasa esto, la app hace
   pendientes.
 - M2 · Por cada una de esas solicitudes, envía un correo a los usuarios de esa empresa cliente con el título
   de la solicitud, su fecha límite y un enlace al portal.
-- M3 · Solo se envía un recordatorio por solicitud: se guarda la fecha de envío y no se repite.
+- M3 · El trabajo diario envía como mucho **un** recordatorio por solicitud: se guarda la fecha de envío y
+  no vuelve a mandarlo por su cuenta. Insistir es decisión del asesor, con M6.
 - M4 · No se envía recordatorio de una solicitud cumplida ni de una cancelada.
 - M5 · La dirección que lanza este trabajo diario solo responde si quien la llama trae el secreto
   acordado. Sin él, responde que no está permitido.
+- M6 · El asesor puede enviar a mano el recordatorio de una solicitud pendiente, esté vencida o no, con el
+  mismo correo que el automático. La pantalla muestra cuándo se envió el último.
+- M7 · Entre dos recordatorios de la misma solicitud tienen que pasar al menos 24 horas, los mande la app o
+  el asesor. Si no han pasado, el botón está apagado y dice cuándo se podrá volver a enviar.
 
 ### Exportación CSV
 
@@ -148,7 +156,10 @@ concreto, no solo sobre el rol, y también con reglas por filas en la base de da
 - Ver y hacer todo lo de cualquier cliente.
 - Crear, invitar, desactivar y reactivar usuarios de los tres roles, y cambiarles el rol.
 - Dar de alta y editar clientes, y asignarlos o reasignarlos a un asesor.
-- Abrir y cerrar expedientes, crear solicitudes, subir documentos, revisar, aprobar, rechazar y exportar.
+- Abrir y cerrar expedientes, crear solicitudes, subir documentos, revisar, aprobar, rechazar y exportar,
+  en las mismas pantallas que usa el asesor y con cualquier cliente.
+- No entra en las pantallas del cliente: no pertenece a ninguna empresa, así que ahí no hay nada suyo que
+  ver.
 
 **Asesor**
 - Ver únicamente los clientes que tiene asignados, y todo lo que cuelga de ellos.
@@ -200,12 +211,14 @@ clientes.
 
 ## Fases
 
-- [ ] Fase 1 · Base del proyecto, acceso y roles — se comprueba: cada usuario de prueba entra y aterriza en
+- [x] Fase 1 · Base del proyecto, acceso y roles — se comprueba: cada usuario de prueba entra y aterriza en
       el panel de su rol; un cliente que escribe a mano la dirección del panel de administrador ve «no tienes
-      permiso»; las reglas por filas están activas en todas las tablas. (A1-A4, A7)
+      permiso»; y, atacando la base de datos directamente con la clave que lleva cualquier navegador, sin
+      sesión no se ve ni una fila, cada usuario solo ve lo suyo y un cliente no consigue ascenderse a
+      administrador. (A1, A2, A3, A4, A6, A7, A8)
 - [ ] Fase 2 · Usuarios, clientes y asignación — se comprueba: el administrador crea un cliente, crea su
       usuario y se lo asigna a un asesor; ese asesor lo ve; el otro asesor no lo ve ni escribiendo la
-      dirección directa. (A5, A6, A8, A9, C1-C7)
+      dirección directa. (A5, A9, A10, C1-C7)
 - [ ] Fase 3 · Expedientes trimestrales y solicitudes — se comprueba: el asesor abre 2026-T1 de un cliente y
       crea dos solicitudes; el cliente las ve con su fecha límite; un cliente de otra empresa no ve nada de
       eso. (E1-E5, S1-S6)
@@ -220,9 +233,11 @@ clientes.
       pendientes no deja aprobarse; un asesor no asignado no puede abrirlo. (R1-R8)
 - [ ] Fase 7 · Recordatorios por correo y exportación CSV — se comprueba: con la fecha límite de una
       solicitud puesta en ayer, el trabajo diario manda un correo y solo uno; el CSV descargado tiene las
-      columnas acordadas y solo las filas aprobadas. (M1-M5, X1-X6)
+      columnas acordadas y solo las filas aprobadas. (M1-M7, X1-X6)
 - [ ] Fase 8 · Publicación en el VPS — se comprueba: la asesoría entra por su dominio con HTTPS y hace el
-      recorrido completo.
+      recorrido completo. Ojo: hasta esta fase las pruebas usan `next start`, que sirve la compilación
+      normal, mientras que en el VPS corre la versión reducida para Docker. Al montar la imagen hay que
+      copiarle los archivos estáticos y comprobar que las pantallas se ven bien, no solo que responden.
 
 ## Cómo se comprueba que todo funciona
 

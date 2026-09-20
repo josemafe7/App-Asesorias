@@ -1,0 +1,20 @@
+# Seguridad de dependencias. El porqué de cada ajuste está en docs/security.md.
+
+# No se instala ninguna versión con menos de 7 días (10080 minutos). Es la defensa principal contra un
+# paquete recién publicado con malware: da tiempo a que se detecte y se retire.
+minimumReleaseAge: 10080
+
+# Se rechaza una versión publicada con menos garantías que las anteriores (por ejemplo, que pierde su
+# prueba de procedencia): puede ser señal de que alguien se ha apoderado del paquete.
+trustPolicy: no-downgrade
+
+# La comprobación anterior solo se aplica a lo publicado en el último año. Antes de eso, media biblioteca
+# de JavaScript se publicó sin pruebas de procedencia porque todavía no existían, y exigírselas no detecta
+# ataques: solo bloquea paquetes viejos y conocidos. Lo reciente, que es donde ocurren los ataques de
+# verdad, se sigue comprobando entero.
+trustPolicyIgnoreAfter: 525600
+
+# Scripts de instalación bloqueados. Se aprueban uno a uno, sabiendo qué paquete los pide y para qué.
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver

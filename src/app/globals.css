@@ -1,0 +1,118 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Tema de Carpeta Fiscal. Los valores salen de DESIGN.md y se aplican UNA SOLA VEZ aquí.
+   Ninguna pantalla define colores, sombras ni radios por su cuenta.
+   La app es solo de fondo claro: DESIGN.md no define una versión oscura, así que no hay bloque .dark. */
+
+/* Esta línea parece sobrar, porque no hay modo oscuro, y es justo al revés: hace falta PRECISAMENTE por
+   eso. Los componentes de shadcn/ui traen de serie estilos `dark:`, y sin esta línea Tailwind los activa
+   según el modo oscuro del sistema operativo. Resultado: a quien tuviera el ordenador en oscuro se le
+   pintaban campos y botones con colores que no están en DESIGN.md. Atándolo a una clase `.dark` que nunca
+   ponemos, esos estilos no se activan nunca. */
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-inter);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* Colores propios de Carpeta Fiscal */
+  --color-urgent: var(--urgent);
+  --color-urgent-surface: var(--urgent-surface);
+  --color-success: var(--success);
+  --color-disabled: var(--disabled);
+
+  --radius-sm: calc(var(--radius) * 0.75);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) * 1.25);
+  --radius-xl: calc(var(--radius) * 1.5);
+  --radius-2xl: calc(var(--radius) * 1.75);
+
+  --shadow-card: 0 1px 2px rgb(31 29 27 / 0.06);
+  --shadow-raised: 0 2px 10px rgb(31 29 27 / 0.07);
+  --shadow-floating: 0 4px 14px rgb(31 29 27 / 0.22);
+  --shadow-dialog: 0 18px 44px rgb(31 29 27 / 0.18);
+}
+
+:root {
+  /* Superficies */
+  --background: #fafaf9; /* fondo de página */
+  --card: #ffffff;
+  --popover: #ffffff;
+  --muted: #f5f5f4; /* relleno sutil: cabeceras de tabla, píldoras neutras */
+  --accent: #f5f5f4; /* hover */
+
+  /* Texto */
+  --foreground: #1f1d1b;
+  --card-foreground: #1f1d1b;
+  --popover-foreground: #1f1d1b;
+  --muted-foreground: #57534e; /* texto secundario */
+  --accent-foreground: #1f1d1b;
+  --disabled: #a8a29e; /* borde marcado y texto desactivado */
+
+  /* Acción principal */
+  --primary: #1f1d1b;
+  --primary-hover: #33302d;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f4;
+  --secondary-foreground: #1f1d1b;
+
+  /* Estados. El ámbar SOLO para lo que urge: ver DESIGN.md. */
+  --urgent: #b45309;
+  --urgent-surface: #fffbf5;
+  --success: #15803d;
+  --destructive: #b91c1c;
+
+  /* Bordes y foco */
+  --border: #e7e5e4;
+  --input: #e7e5e4;
+  --ring: #1f1d1b;
+
+  --radius: 0.5rem; /* 8px, el radio por defecto de DESIGN.md */
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  /* El foco se ve siempre. DESIGN.md: nunca se quita. */
+  *:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@layer utilities {
+  /* Importes, NIF y fechas con cifras de ancho fijo, para que las columnas de números queden alineadas.
+     No es un detalle: es una app de contabilidad. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}

@@ -5,13 +5,67 @@ los revisan, los aprueban y los exportan ya validados.
 
 ## Cómo arrancarlo
 
-(Se completa cuando funcione la primera versión: qué hay que tener instalado y los pasos exactos para
-ejecutarla en otro ordenador con los datos de ejemplo.)
+Hace falta tener instalado **Node.js 24 o superior**, **pnpm** y **Git**.
+
+1. Descarga el proyecto y entra en su carpeta.
+2. Instala las dependencias:
+   ```
+   pnpm install
+   ```
+3. Crea un proyecto en [Supabase](https://supabase.com), **en una región de la Unión Europea**.
+4. Copia `.env.example` a `.env.local` y rellena los cuatro valores. Los tres de Supabase están en su
+   panel, en *Project Settings › Data API*. `NEXT_PUBLIC_SITE_URL` en local es `http://localhost:3000`.
+5. Aplica las migraciones de `supabase/migrations/`, por orden de nombre, en el editor SQL de Supabase.
+6. En el panel de Supabase, en *Authentication*:
+   - desactiva el registro de usuarios nuevos: las cuentas las crea el administrador;
+   - deja activada la confirmación por correo;
+   - pon la longitud mínima de contraseña en 10 caracteres, y exige minúscula, mayúscula, número y
+     símbolo;
+   - añade `http://localhost:3000/**` a las direcciones de redirección permitidas.
+7. Carga los datos de ejemplo:
+   ```
+   pnpm seed
+   ```
+8. Arranca la app:
+   ```
+   pnpm dev
+   ```
+
+En `http://localhost:3000`.
+
+> El seed se niega a ejecutarse si encuentra clientes que no son de ejemplo. Nunca lo lances contra una
+> base de datos con datos reales.
 
 ## Cómo probarla
 
-(Se completa cuando funcione la primera versión: la dirección de la demo, si está publicada, y un usuario
-de prueba de cada tipo, con su contraseña. Solo credenciales de prueba, nunca reales.)
+Con los datos de ejemplo cargados, la contraseña de todos los usuarios de prueba es
+`Carpeta-Fiscal-2026!`. Son cuentas de mentira y solo existen en desarrollo y en la demo.
+
+| Para entrar como | Correo | Qué verás |
+|---|---|---|
+| Administrador | `admin@rierabono.es` | El panel de administración |
+| Asesora | `marta@rierabono.es` | Sus clientes: La Espiga y Talleres Moreno |
+| Asesor | `javier@rierabono.es` | Sus clientes: Azahar y Ana Belmonte |
+| Cliente | `pablo@laespiga.es` | Lo de Panadería La Espiga |
+| Otro usuario del mismo cliente | `rosa@laespiga.es` | Lo mismo que Pablo: una empresa puede tener varios usuarios |
+| Cuenta desactivada | `baja@laespiga.es` | No entra, aunque la contraseña sea correcta |
+
+Para comprobar que nadie ve lo que no debe: entra como `pablo@laespiga.es` y escribe a mano la dirección
+`/admin`. Tiene que salir «Esta página no es para ti».
+
+### Comandos
+
+| Comando | Qué hace |
+|---|---|
+| `pnpm dev` | Arranca la app en local |
+| `pnpm lint` | Revisa el código |
+| `pnpm typecheck` | Revisa los tipos |
+| `pnpm test` | Pruebas de lógica (Vitest) |
+| `pnpm test:e2e` | Pruebas que recorren la app como un usuario (Playwright) |
+| `pnpm build` | Compila como en producción |
+| `pnpm seed` | Carga los datos de ejemplo |
+
+La primera vez que uses Playwright: `pnpm exec playwright install chromium`.
 
 ## Cómo se trabaja en este proyecto
 
@@ -35,4 +89,4 @@ Se construye por fases con un agente de código. Lo que el agente cumple sin que
 
 ## Documentación
 
-Todo lo demás está en `docs/`.
+Todo lo demás está en `docs/`. Empieza por `docs/spec.md`, que dice qué hace la app y con qué reglas.
