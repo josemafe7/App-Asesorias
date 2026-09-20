@@ -26,6 +26,9 @@ next-env.d.ts
 /blob-report/
 /playwright/.cache/
 
+# Las sesiones con las que entran las pruebas: son credenciales, aunque sean de usuarios de mentira
+e2e/.sesiones/
+
 # Claves y contraseñas: nunca se suben
 .env
 .env.*

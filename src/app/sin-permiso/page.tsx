@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
-import { ROLE_HOME } from '@/data/profile'
+import { ROLE_HOME } from '@/lib/roles'
 import { APP_NAME } from '@/lib/app-config'
 import { requireProfile } from '@/lib/auth-guards'
 

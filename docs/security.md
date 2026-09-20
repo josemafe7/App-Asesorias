@@ -10,7 +10,10 @@ silencio.
 - Next.js manda al navegador toda variable que empieza por `NEXT_PUBLIC_`: solo la llevan las que están
   hechas para ser públicas, como la URL y la clave publicable de Supabase.
 - La clave secreta de Supabase se salta Row Level Security: solo en el servidor y solo cuando no haya otra
-  forma.
+  forma. Hoy eso es el seed, la limpieza de las pruebas y crear o borrar la cuenta de un usuario al
+  invitarle (`src/lib/supabase/admin.ts`), siempre después de comprobar que quien lo pide es
+  administrador. Los datos de la app se leen y se escriben con la clave publicable, para que las políticas
+  sigan mandando.
 - Cuando hay dos proyectos de Supabase, cada uno tiene sus claves: `.env.local` lleva las de desarrollo, y
   las de producción solo están en las variables de entorno de la aplicación en el panel de Dokploy.
 - Si una clave se filtra (en un commit, una captura o un chat), se revoca y se crea otra. Borrarla del
@@ -86,6 +89,8 @@ silencio.
   una regla en el proxy Traefik de Dokploy para lo que llega de fuera sin sesión.
 - Las llamadas a la IA tienen tope de tokens por petición y de uso por usuario, y el panel del proveedor,
   límite de gasto mensual (o alertas, si no lo permite).
+- Enviar correo cuesta dinero: las invitaciones tienen un tope por administrador y hora
+  (`src/app/admin/usuarios/actions.ts`).
 - Next.js ya oculta en producción los errores de los Server Components; las Server Actions y los Route
   Handlers nunca devuelven `error.message`, trazas ni detalles de la base de datos.
 - Si una comprobación de seguridad falla o da error, se deniega el acceso.

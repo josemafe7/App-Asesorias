@@ -2,7 +2,8 @@ import { Folder } from 'lucide-react'
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 
-import { getCurrentProfile, ROLE_HOME } from '@/data/profile'
+import { getCurrentProfile } from '@/data/profile'
+import { ROLE_HOME } from '@/lib/roles'
 import { APP_NAME, FIRM_NAME } from '@/lib/app-config'
 
 import { SignInForm } from './_components/sign-in-form'

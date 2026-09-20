@@ -13,6 +13,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 import type { Database } from '../src/lib/supabase/database.types.ts'
+import { borrarDatosDePruebas } from './limpiar-pruebas.mts'
 import { DEMO_PASSWORD, SEED_CLIENTS, SEED_USERS, type SeedUser } from './seed-data.mts'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -63,6 +64,8 @@ async function upsertUser(user: SeedUser): Promise<string> {
 }
 
 async function main(): Promise<void> {
+  // Lo que dejaron las pruebas no es dato real: se borra antes de mirar si aquí hay datos de verdad.
+  await borrarDatosDePruebas()
   await refuseIfRealData()
 
   // 1) Los usuarios de la asesoría, que son quienes pueden ser asesores de un cliente.

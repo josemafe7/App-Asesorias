@@ -13,15 +13,21 @@ Hace falta tener instalado **Node.js 24 o superior**, **pnpm** y **Git**.
    pnpm install
    ```
 3. Crea un proyecto en [Supabase](https://supabase.com), **en una región de la Unión Europea**.
-4. Copia `.env.example` a `.env.local` y rellena los cuatro valores. Los tres de Supabase están en su
-   panel, en *Project Settings › Data API*. `NEXT_PUBLIC_SITE_URL` en local es `http://localhost:3000`.
+4. Copia `.env.example` a `.env.local` y rellena los cuatro primeros valores. Los tres de Supabase están en
+   su panel, en *Project Settings › Data API*. `NEXT_PUBLIC_SITE_URL` en local es `http://localhost:3000`.
+   Los dos del correo (`RESEND_API_KEY` y `EMAIL_FROM`) se pueden dejar en blanco mientras se construye:
+   sin ellos, los correos se escriben en la consola del servidor en vez de enviarse, con su enlace, y así
+   se puede probar la invitación sin cuenta de correo.
 5. Aplica las migraciones de `supabase/migrations/`, por orden de nombre, en el editor SQL de Supabase.
 6. En el panel de Supabase, en *Authentication*:
    - desactiva el registro de usuarios nuevos: las cuentas las crea el administrador;
    - deja activada la confirmación por correo;
    - pon la longitud mínima de contraseña en 10 caracteres, y exige minúscula, mayúscula, número y
      símbolo;
-   - añade `http://localhost:3000/**` a las direcciones de redirección permitidas.
+   - añade `http://localhost:3000/**` a las direcciones de redirección permitidas;
+   - mira en *Emails* cuánto duran los enlaces de invitación (*Email OTP Expiration*). Si no son 24 horas,
+     cambia `INVITATION_EXPIRY_HOURS` en `src/lib/email/invitation.ts`, porque ese número es el que se le
+     dice a la persona invitada.
 7. Carga los datos de ejemplo:
    ```
    pnpm seed
@@ -43,15 +49,19 @@ Con los datos de ejemplo cargados, la contraseña de todos los usuarios de prueb
 
 | Para entrar como | Correo | Qué verás |
 |---|---|---|
-| Administrador | `admin@rierabono.es` | El panel de administración |
+| Administrador | `admin@rierabono.es` | El panel, los clientes y los usuarios de toda la asesoría |
 | Asesora | `marta@rierabono.es` | Sus clientes: La Espiga y Talleres Moreno |
 | Asesor | `javier@rierabono.es` | Sus clientes: Azahar y Ana Belmonte |
-| Cliente | `pablo@laespiga.es` | Lo de Panadería La Espiga |
+| Cliente | `pablo@laespiga.es` | La ficha de Panadería La Espiga y el correo de su asesora |
 | Otro usuario del mismo cliente | `rosa@laespiga.es` | Lo mismo que Pablo: una empresa puede tener varios usuarios |
 | Cuenta desactivada | `baja@laespiga.es` | No entra, aunque la contraseña sea correcta |
 
 Para comprobar que nadie ve lo que no debe: entra como `pablo@laespiga.es` y escribe a mano la dirección
 `/admin`. Tiene que salir «Esta página no es para ti».
+
+Las pruebas dan de alta empresas y usuarios de verdad, marcados como de prueba (el NIF empieza por `E2E` y
+el correo acaba en `@e2e.carpetafiscal.test`). Se borran solos al empezar y al terminar, y `pnpm seed`
+también los limpia.
 
 ### Comandos
 

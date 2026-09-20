@@ -2,24 +2,8 @@ import 'server-only'
 
 import { z } from 'zod'
 
+import { ROLES, type Role } from '@/lib/roles'
 import { createClient } from '@/lib/supabase/server'
-
-export const ROLES = ['admin', 'advisor', 'client'] as const
-export type Role = (typeof ROLES)[number]
-
-/** Cómo se llama cada rol en las pantallas. El código va en inglés; lo que ve la gente, en español. */
-export const ROLE_LABELS: Record<Role, string> = {
-  admin: 'Administrador',
-  advisor: 'Asesor',
-  client: 'Cliente',
-}
-
-/** A3 · Dónde aterriza cada rol al entrar. */
-export const ROLE_HOME: Record<Role, string> = {
-  admin: '/admin',
-  advisor: '/asesor',
-  client: '/cliente',
-}
 
 // Lo que devuelve la base de datos también se valida. Si un día cambia una columna, salta aquí y no
 // tres pantallas más allá con un `undefined` por el medio.

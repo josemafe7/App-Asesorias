@@ -113,3 +113,13 @@ export const SEED_USERS: SeedUser[] = [
     isActive: false,
   },
 ]
+
+/**
+ * La marca de los datos que crean las pruebas de Playwright.
+ *
+ * Las pruebas dan de alta empresas y usuarios de verdad. Para que no se queden por medio ni se confundan
+ * con datos reales, todo lo suyo lleva esta marca: el NIF empieza por `E2E` y el correo acaba en un
+ * dominio reservado que no existe ni puede existir. El seed los borra y las pruebas, también.
+ */
+export const E2E_TAX_ID_PREFIX = 'E2E'
+export const E2E_EMAIL_DOMAIN = 'e2e.carpetafiscal.test'

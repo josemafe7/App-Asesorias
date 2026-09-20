@@ -1,7 +1,9 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { getCurrentProfile, ROLE_HOME } from '@/data/profile'
+import { getCurrentProfile } from '@/data/profile'
+import { logFailedSignIn } from '@/lib/audit'
+import { ROLE_HOME } from '@/lib/roles'
 import { checkRateLimit, peekRateLimit, resetRateLimit } from '@/lib/rate-limit'
 import { requestIp } from '@/lib/request-ip'
 import { createClient } from '@/lib/supabase/server'
@@ -43,7 +45,7 @@ export async function signIn(_previous: SignInState, formData: FormData): Promis
     // A8 · El intento fallido se apunta ahora, que es cuando cuenta.
     checkRateLimit(limitKey, LOGIN_MAX_ATTEMPTS, LOGIN_WINDOW_MS)
     // A9 · Queda registro del intento fallido. Sin contraseña y sin datos personales de más.
-    console.warn('[acceso] intento fallido', { ip, at: new Date().toISOString() })
+    logFailedSignIn(ip)
     return { error: genericError }
   }
 

@@ -1,6 +1,11 @@
+import fs from 'node:fs'
+
 import { expect, test, type APIRequestContext } from '@playwright/test'
 
-import { DEMO_PASSWORD, seedUser } from './utils'
+import { E2E_TAX_ID_PREFIX } from '../scripts/seed-data.mts'
+
+import { RUTA_CREDENCIALES } from './sesiones'
+import { seedUser } from './utils'
 
 /**
  * Permisos en la base de datos, atacándola de frente.
@@ -24,15 +29,22 @@ test.beforeAll(() => {
   expect(PUBLISHABLE_KEY, 'falta NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY en .env.local').toBeTruthy()
 })
 
-/** Entra como una persona y devuelve su credencial, igual que haría el navegador. */
-async function sessionToken(request: APIRequestContext, email: string): Promise<string> {
-  const response = await request.post(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-    headers: { apikey: PUBLISHABLE_KEY!, 'Content-Type': 'application/json' },
-    data: { email, password: DEMO_PASSWORD },
-  })
-  expect(response.ok(), `no se ha podido entrar como ${email}`).toBe(true)
-  const body = await response.json()
-  return body.access_token as string
+/**
+ * La credencial de una persona, igual que la que lleva su navegador.
+ *
+ * No se pide aquí: la guardó `e2e/sesiones.setup.ts` al empezar. Supabase limita cuántos inicios de
+ * sesión acepta seguidos, y una prueba por persona agotaba ese margen.
+ */
+function sessionToken(email: string): string {
+  const credenciales = JSON.parse(fs.readFileSync(RUTA_CREDENCIALES, 'utf8')) as Record<
+    string,
+    string
+  >
+  const token = credenciales[email]
+
+  if (!token) throw new Error(`No hay ninguna credencial guardada para ${email}`)
+
+  return token
 }
 
 /** Pide una tabla entera. Sin credencial, como alguien que no ha entrado. */
@@ -51,13 +63,32 @@ async function readTable(
   return (await response.json()) as unknown[]
 }
 
+/**
+ * Los nombres de las empresas que alcanza una persona, dejando fuera las que crean otras pruebas.
+ *
+ * Las pruebas corren a la vez, y las que recorren la app dan de alta empresas marcadas como de prueba.
+ * Contarlas aquí haría fallar estas comprobaciones por un motivo que no tiene nada que ver con los
+ * permisos, que es lo único que miran.
+ */
+async function nombresDeEmpresas(request: APIRequestContext, token: string): Promise<string[]> {
+  const clients = (await readTable(request, 'clients', token)) as {
+    legal_name: string
+    tax_id: string
+  }[]
+
+  return clients
+    .filter((client) => !client.tax_id.startsWith(E2E_TAX_ID_PREFIX))
+    .map((client) => client.legal_name)
+    .sort()
+}
+
 test('sin haber entrado no se ve ni una fila de ninguna tabla', async ({ request }) => {
   expect(await readTable(request, 'profiles')).toEqual([])
   expect(await readTable(request, 'clients')).toEqual([])
 })
 
 test('un cliente solo ve su propia empresa, no las demás', async ({ request }) => {
-  const token = await sessionToken(request, seedUser('espiga-pablo').email)
+  const token = sessionToken(seedUser('espiga-pablo').email)
 
   const clients = (await readTable(request, 'clients', token)) as { legal_name: string }[]
 
@@ -65,20 +96,25 @@ test('un cliente solo ve su propia empresa, no las demás', async ({ request }) 
   expect(clients[0].legal_name).toBe('Panadería La Espiga SL')
 })
 
-test('un cliente no ve el perfil de nadie más, ni de su propia empresa', async ({ request }) => {
-  const token = await sessionToken(request, seedUser('espiga-pablo').email)
+// A10 · Para escribir a su asesor, el cliente necesita su dirección, así que desde la fase 2 puede leer
+// ese perfil. Solo ese: ni el de otro asesor, ni el del administrador, ni el de sus compañeros de
+// empresa.
+test('un cliente ve su perfil y el de su asesor, y ningún otro', async ({ request }) => {
+  const token = sessionToken(seedUser('espiga-pablo').email)
 
   const profiles = (await readTable(request, 'profiles', token)) as { email: string }[]
+  const correos = profiles.map((profile) => profile.email).sort()
 
-  expect(profiles).toHaveLength(1)
-  expect(profiles[0].email).toBe(seedUser('espiga-pablo').email)
+  expect(correos).toEqual([seedUser('marta').email, seedUser('espiga-pablo').email].sort())
+  expect(correos).not.toContain(seedUser('javier').email)
+  expect(correos).not.toContain(seedUser('admin').email)
+  expect(correos).not.toContain(seedUser('espiga-rosa').email)
 })
 
 test('un asesor solo ve los clientes que tiene asignados', async ({ request }) => {
-  const token = await sessionToken(request, seedUser('marta').email)
+  const token = sessionToken(seedUser('marta').email)
 
-  const clients = (await readTable(request, 'clients', token)) as { legal_name: string }[]
-  const nombres = clients.map((client) => client.legal_name).sort()
+  const nombres = await nombresDeEmpresas(request, token)
 
   expect(nombres).toEqual(['Panadería La Espiga SL', 'Talleres Moreno SL'])
   expect(nombres).not.toContain('Floristería Azahar SL')
@@ -86,16 +122,21 @@ test('un asesor solo ve los clientes que tiene asignados', async ({ request }) =
 })
 
 test('el administrador sí ve todas las empresas', async ({ request }) => {
-  const token = await sessionToken(request, seedUser('admin').email)
+  const token = sessionToken(seedUser('admin').email)
 
-  const clients = await readTable(request, 'clients', token)
+  const nombres = await nombresDeEmpresas(request, token)
 
-  expect(clients).toHaveLength(4)
+  expect(nombres).toEqual([
+    'Ana Belmonte García',
+    'Floristería Azahar SL',
+    'Panadería La Espiga SL',
+    'Talleres Moreno SL',
+  ])
 })
 
 test('un cliente no puede ascenderse a administrador', async ({ request }) => {
   const pablo = seedUser('espiga-pablo')
-  const token = await sessionToken(request, pablo.email)
+  const token = sessionToken(pablo.email)
 
   const response = await request.patch(
     `${SUPABASE_URL}/rest/v1/profiles?email=eq.${encodeURIComponent(pablo.email)}`,
@@ -114,14 +155,22 @@ test('un cliente no puede ascenderse a administrador', async ({ request }) => {
   expect(await response.json()).toEqual([])
 
   // Y sigue siendo cliente.
-  const profiles = (await readTable(request, 'profiles', token)) as { role: string }[]
-  expect(profiles[0].role).toBe('client')
+  const profiles = (await readTable(request, 'profiles', token)) as {
+    email: string
+    role: string
+  }[]
+  const suyo = profiles.find((profile) => profile.email === pablo.email)
+  expect(suyo?.role).toBe('client')
 })
 
-test('un asesor no puede robarle un cliente a otro asesor', async ({ request }) => {
-  const token = await sessionToken(request, seedUser('marta').email)
+// Se prueba sobre un cliente QUE SÍ ES SUYO a propósito. Con el de otro asesor, la respuesta vacía no
+// demostraría nada: podría ser porque no puede verlo, no porque no pueda cambiarlo.
+test('un asesor no puede cambiar la asignación de un cliente, ni de los suyos', async ({
+  request,
+}) => {
+  const token = sessionToken(seedUser('marta').email)
 
-  const response = await request.patch(`${SUPABASE_URL}/rest/v1/clients?tax_id=eq.B11223344`, {
+  const response = await request.patch(`${SUPABASE_URL}/rest/v1/clients?tax_id=eq.B12345678`, {
     headers: {
       apikey: PUBLISHABLE_KEY!,
       Authorization: `Bearer ${token}`,
@@ -131,7 +180,45 @@ test('un asesor no puede robarle un cliente a otro asesor', async ({ request }) 
     data: { advisor_id: null },
   })
 
+  // No cambia ninguna fila: escribir en los clientes es solo del administrador.
   expect(await response.json()).toEqual([])
+
+  // Y La Espiga, que es suya, sigue siendo suya.
+  const nombres = await nombresDeEmpresas(request, token)
+  expect(nombres).toContain('Panadería La Espiga SL')
+})
+
+// A11 · Un administrador no puede quitarse el rol ni desactivarse. La pantalla no se lo ofrece, pero eso
+// no basta: aquí se comprueba atacando la base de datos con su propia credencial.
+test('A11 · un administrador no consigue degradarse ni darse de baja a sí mismo', async ({
+  request,
+}) => {
+  const admin = seedUser('admin')
+  const token = sessionToken(admin.email)
+
+  const intentar = async (cambio: Record<string, unknown>) =>
+    request.patch(`${SUPABASE_URL}/rest/v1/profiles?email=eq.${encodeURIComponent(admin.email)}`, {
+      headers: {
+        apikey: PUBLISHABLE_KEY!,
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation',
+      },
+      data: cambio,
+    })
+
+  expect(await (await intentar({ role: 'advisor' })).json()).toEqual([])
+  expect(await (await intentar({ is_active: false })).json()).toEqual([])
+
+  // Sigue siendo administrador y sigue activo.
+  const profiles = (await readTable(request, 'profiles', token)) as {
+    email: string
+    role: string
+    is_active: boolean
+  }[]
+  const suyo = profiles.find((profile) => profile.email === admin.email)
+  expect(suyo?.role).toBe('admin')
+  expect(suyo?.is_active).toBe(true)
 })
 
 test('las funciones internas de los permisos no están publicadas en la API', async ({ request }) => {
@@ -153,4 +240,44 @@ test('A2 · nadie puede crearse una cuenta llamando al servicio directamente', a
   })
 
   expect(response.ok(), 'el registro público está abierto en Supabase').toBe(false)
+})
+
+// Desde la fase 2 el administrador da de alta clientes e invita usuarios. Que solo pueda él no se queda
+// en esconder un botón: se comprueba atacando la base de datos de frente, como en las pruebas de arriba.
+test('un asesor no puede dar de alta clientes, aunque llame a la base de datos directamente', async ({
+  request,
+}) => {
+  const token = sessionToken(seedUser('marta').email)
+
+  const response = await request.post(`${SUPABASE_URL}/rest/v1/clients`, {
+    headers: {
+      apikey: PUBLISHABLE_KEY!,
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+    },
+    data: { legal_name: 'E2E Empresa colada por un asesor', tax_id: 'E2ECOLADA1' },
+  })
+
+  expect(response.ok(), 'un asesor ha conseguido dar de alta un cliente').toBe(false)
+})
+
+test('un asesor no puede crear perfiles ni cambiar el rol de nadie', async ({ request }) => {
+  const token = sessionToken(seedUser('marta').email)
+
+  const response = await request.patch(
+    `${SUPABASE_URL}/rest/v1/profiles?email=eq.${encodeURIComponent(seedUser('espiga-pablo').email)}`,
+    {
+      headers: {
+        apikey: PUBLISHABLE_KEY!,
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation',
+      },
+      data: { role: 'advisor' },
+    },
+  )
+
+  // No cambia ninguna fila: escribir en los perfiles es solo del administrador.
+  expect(await response.json()).toEqual([])
 })

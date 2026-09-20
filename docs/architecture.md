@@ -12,10 +12,12 @@ Actions.
 Los datos, los usuarios y los archivos están en Supabase. La app habla con Supabase con la clave
 publicable, así que **todo lo que pide pasa por las reglas por filas de la base de datos**: si una política
 no deja ver un registro, no lo ve ni aunque el código se lo pida. La clave secreta, que se salta esas
-reglas, solo la usa el seed.
+reglas, se usa en tres sitios contados: el seed, la limpieza de las pruebas y las acciones del
+administrador que **crean o borran una cuenta** (invitar a alguien), que es lo único que Supabase no deja
+hacer de otra forma. Todo lo demás, también en esas acciones, pasa por la clave publicable y sus políticas.
 
-Dos servicios más, que entran en fases posteriores: OpenRouter lee los documentos subidos y propone sus
-datos, y Resend envía las invitaciones y los recordatorios.
+Otro servicio: Resend envía los correos (las invitaciones desde la fase 2 y los recordatorios en la fase 7).
+Y en la fase 5 entra OpenRouter, que lee los documentos subidos y propone sus datos.
 
 ## Piezas
 
@@ -37,7 +39,9 @@ datos, y Resend envía las invitaciones y los recordatorios.
 - `src/data/` · el acceso a datos, con `import 'server-only'`. Comprueba permisos y devuelve solo los
   campos que necesita cada pantalla.
 - `src/lib/` · utilidades y clientes de servicios: Supabase, variables de entorno, límite de peticiones,
-  validaciones y los porteros de permisos.
+  validaciones, los roles y los porteros de permisos.
+- `src/lib/email/` · el texto de cada correo, aparte de su envío: así el texto se prueba sin llamar a
+  ningún servicio. `send.ts` es el único sitio que habla con Resend.
 - `src/components/` · lo compartido entre pantallas. Los de shadcn/ui, en `src/components/ui/`.
 - `src/proxy.ts` · el proxy de Next.js. En la versión 16 se llama así, antes era `middleware`.
 - `supabase/migrations/` · cada cambio de la base de datos, en un archivo. La base se puede recrear entera
@@ -62,6 +66,22 @@ Al entrar en una página privada, por ejemplo el panel del asesor:
 Al guardar algo, una Server Action valida lo que llega con Zod, vuelve a comprobar quién es el usuario y
 llama a la capa de datos. Nunca se cambian datos con un GET.
 
+Cuando lo guardado se ve en la misma pantalla (la ficha de un cliente o la de un usuario), la acción
+termina volviendo a cargar esa ficha con un aviso en la dirección (`?guardado=1`). Así lo que se ve sale
+siempre de la base de datos y no de lo que quedó escrito en el formulario.
+
+## Cómo se invita a alguien (A5)
+
+1. El administrador rellena el formulario y la Server Action comprueba que es administrador, valida los
+   datos y mira que ese correo no tenga ya una cuenta.
+2. Le pide a Supabase que **cree la cuenta y genere el enlace de invitación, sin enviar nada**. Esta es la
+   parte que necesita la clave secreta.
+3. Guarda el perfil (nombre, rol y empresa) con la clave publicable, así que la política de escritura
+   vuelve a comprobar que quien lo hace es administrador.
+4. Envía el correo con Resend, con el texto de la propia app. Si algo falla en los pasos 3 o 4, la cuenta
+   recién creada se borra: o queda invitada del todo, o no queda nada a medias.
+5. El enlace lleva a `/auth/confirm`, que canjea el testigo y manda a poner la contraseña.
+
 ## Tres decisiones que explican el resto
 
 **Los permisos se comprueban tres veces, a propósito.** En la base de datos (reglas por filas), en el
@@ -80,6 +100,15 @@ en `private` y no en `public` porque Supabase publica automáticamente como API 
 ahí quedaban expuestas en internet como `/rest/v1/rpc/<nombre>`. Quitarles el permiso de ejecución no vale,
 porque las políticas se evalúan con los permisos de quien consulta y entonces nadie podría leer ni lo suyo.
 Moverlas de esquema resuelve las dos cosas: las políticas las siguen llamando y la API ya no las ve.
+
+**Un usuario cliente puede leer el perfil de su asesor, y solo el suyo.** Lo pide la regla A10: para
+escribirle hace falta su dirección de correo. Es la única fila ajena que alcanza un cliente, y lo garantiza
+una política, no el código de la pantalla.
+
+**Un administrador no puede tocar su propia fila de `profiles`.** Es la regla A11, y también está en la
+base de datos: la política de cambiar perfiles excluye la fila de quien la hace. Si solo estuviera en la
+app, un administrador podría degradarse o desactivarse llamando a la base de datos desde su navegador y
+dejar a la asesoría sin administrador. Su cuenta la cambia otro administrador.
 
 ## Servicios externos
 

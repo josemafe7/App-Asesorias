@@ -1,7 +1,8 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { getCurrentProfile, ROLE_HOME } from '@/data/profile'
+import { getCurrentProfile } from '@/data/profile'
+import { ROLE_HOME } from '@/lib/roles'
 import { createClient } from '@/lib/supabase/server'
 import { newPasswordSchema } from '@/lib/validation/auth'
 

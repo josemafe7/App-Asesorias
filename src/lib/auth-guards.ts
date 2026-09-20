@@ -2,7 +2,8 @@ import 'server-only'
 
 import { redirect } from 'next/navigation'
 
-import { getCurrentProfile, type CurrentProfile, type Role } from '@/data/profile'
+import { getCurrentProfile, type CurrentProfile } from '@/data/profile'
+import { type Role } from '@/lib/roles'
 
 /**
  * El portero de cada página privada.

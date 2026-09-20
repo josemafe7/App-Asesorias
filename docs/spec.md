@@ -37,6 +37,8 @@ Cada línea es una regla que se puede comprobar: «Cuando pasa esto, la app hace
 - A10 · Un usuario cliente tiene a mano un enlace «Escribir a mi asesor» que abre su propio programa de
   correo con la dirección de su asesor asignado ya puesta. La app no guarda ni envía ese mensaje: no hay
   mensajería dentro del portal.
+- A11 · Un administrador no puede quitarse a sí mismo el rol ni desactivar su propia cuenta. La app no se
+  lo permite y le explica por qué, para que la asesoría nunca se quede sin administrador.
 
 ### Clientes y asignación
 
@@ -154,7 +156,8 @@ concreto, no solo sobre el rol, y también con reglas por filas en la base de da
 
 **Administrador**
 - Ver y hacer todo lo de cualquier cliente.
-- Crear, invitar, desactivar y reactivar usuarios de los tres roles, y cambiarles el rol.
+- Crear, invitar, desactivar y reactivar usuarios de los tres roles, y cambiarles el rol. Consigo mismo
+  no: no puede cambiarse el rol ni desactivarse (A11).
 - Dar de alta y editar clientes, y asignarlos o reasignarlos a un asesor.
 - Abrir y cerrar expedientes, crear solicitudes, subir documentos, revisar, aprobar, rechazar y exportar,
   en las mismas pantallas que usa el asesor y con cualquier cliente.
@@ -216,9 +219,9 @@ clientes.
       permiso»; y, atacando la base de datos directamente con la clave que lleva cualquier navegador, sin
       sesión no se ve ni una fila, cada usuario solo ve lo suyo y un cliente no consigue ascenderse a
       administrador. (A1, A2, A3, A4, A6, A7, A8)
-- [ ] Fase 2 · Usuarios, clientes y asignación — se comprueba: el administrador crea un cliente, crea su
+- [x] Fase 2 · Usuarios, clientes y asignación — se comprueba: el administrador crea un cliente, crea su
       usuario y se lo asigna a un asesor; ese asesor lo ve; el otro asesor no lo ve ni escribiendo la
-      dirección directa. (A5, A9, A10, C1-C7)
+      dirección directa. (A5, A9, A10, A11, C1-C7)
 - [ ] Fase 3 · Expedientes trimestrales y solicitudes — se comprueba: el asesor abre 2026-T1 de un cliente y
       crea dos solicitudes; el cliente las ve con su fecha límite; un cliente de otra empresa no ve nada de
       eso. (E1-E5, S1-S6)

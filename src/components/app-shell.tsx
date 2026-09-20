@@ -3,7 +3,8 @@ import Link from 'next/link'
 
 import { signOut } from '@/app/acceso/actions'
 import { Button } from '@/components/ui/button'
-import { ROLE_HOME, ROLE_LABELS, type CurrentProfile } from '@/data/profile'
+import { type CurrentProfile } from '@/data/profile'
+import { ROLE_HOME, ROLE_LABELS } from '@/lib/roles'
 import { APP_NAME, FIRM_NAME } from '@/lib/app-config'
 
 export type NavLink = { href: string; label: string }

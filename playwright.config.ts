@@ -12,6 +12,9 @@ const BASE_URL = process.env.E2E_BASE_URL ?? 'http://localhost:3000'
 
 export default defineConfig({
   testDir: './e2e',
+  // Las pruebas dan de alta empresas y usuarios de verdad: se borran antes de empezar y al terminar.
+  globalSetup: './e2e/limpieza.ts',
+  globalTeardown: './e2e/limpieza.ts',
   // Las pruebas no dependen unas de otras ni del orden (docs/testing.md).
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
@@ -23,9 +26,23 @@ export default defineConfig({
     locale: 'es-ES',
   },
   projects: [
-    { name: 'escritorio', use: { ...devices['Desktop Chrome'] } },
+    // Entra una vez con cada usuario y guarda su sesión; las demás pruebas la reutilizan.
+    { name: 'sesiones', testMatch: /sesiones\.setup\.ts/ },
+    {
+      name: 'escritorio',
+      use: { ...devices['Desktop Chrome'] },
+      dependencies: ['sesiones'],
+      testIgnore: /sesiones\.setup\.ts/,
+    },
     // El cliente usa el portal sobre todo en el móvil: sus pantallas se prueban también a 375 px.
-    { name: 'movil', use: { ...devices['iPhone 13'] }, testMatch: /.*\.movil\.spec\.ts/ },
+    {
+      name: 'movil',
+      // El tamaño y el modo táctil del iPhone, pero con Chromium: es el único navegador que instala el
+      // proyecto (docs/testing.md).
+      use: { ...devices['iPhone 13'], browserName: 'chromium' },
+      testMatch: /.*\.movil\.spec\.ts/,
+      dependencies: ['sesiones'],
+    },
   ],
   // Como recomienda Next.js, se prueba la versión compilada, no el modo desarrollo.
   webServer: {
@@ -33,5 +50,8 @@ export default defineConfig({
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,
+    // Las pruebas no llaman al servicio de correo: se escribe en la consola del servidor
+    // (docs/testing.md y docs/decisions/0004-correo-resend.md).
+    env: { EMAIL_TRANSPORT: 'console' },
   },
 })
