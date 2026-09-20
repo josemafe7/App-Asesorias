@@ -55,7 +55,8 @@ test.describe('lo que hace la asesora', () => {
     await fila.getByRole('button', { name: 'Recordar' }).click()
 
     await expect(fila).toContainText('Último recordatorio:')
-    await expect(fila).toContainText('Recordado hace menos de un día')
+    // M7 · El botón se apaga y dice cuándo se podrá volver a enviar.
+    await expect(fila).toContainText(/Se podrá recordar el \d{2}\/\d{2}\/\d{4} a las \d{1,2}:\d{2}/)
     await expect(fila.getByRole('button', { name: 'Recordar' })).toBeHidden()
   })
 

@@ -1,11 +1,8 @@
-import fs from 'node:fs'
-
 import { expect, test, type APIRequestContext } from '@playwright/test'
 
 import { E2E_TAX_ID_PREFIX } from '../scripts/seed-data.mts'
 
-import { RUTA_CREDENCIALES } from './sesiones'
-import { seedUser } from './utils'
+import { seedUser, sessionToken } from './utils'
 
 /**
  * Permisos en la base de datos, atacándola de frente.
@@ -28,24 +25,6 @@ test.beforeAll(() => {
   expect(SUPABASE_URL, 'falta NEXT_PUBLIC_SUPABASE_URL en .env.local').toBeTruthy()
   expect(PUBLISHABLE_KEY, 'falta NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY en .env.local').toBeTruthy()
 })
-
-/**
- * La credencial de una persona, igual que la que lleva su navegador.
- *
- * No se pide aquí: la guardó `e2e/sesiones.setup.ts` al empezar. Supabase limita cuántos inicios de
- * sesión acepta seguidos, y una prueba por persona agotaba ese margen.
- */
-function sessionToken(email: string): string {
-  const credenciales = JSON.parse(fs.readFileSync(RUTA_CREDENCIALES, 'utf8')) as Record<
-    string,
-    string
-  >
-  const token = credenciales[email]
-
-  if (!token) throw new Error(`No hay ninguna credencial guardada para ${email}`)
-
-  return token
-}
 
 /** Pide una tabla entera. Sin credencial, como alguien que no ha entrado. */
 async function readTable(

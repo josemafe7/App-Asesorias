@@ -32,8 +32,9 @@ export type ReviewDefaults = {
 function Botones({ aprobado }: { aprobado: boolean }) {
   const { pending } = useFormStatus()
 
+  // DESIGN.md · «Layout»: los botones de aprobar y rechazar quedan fijos abajo.
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="sticky bottom-0 -mx-6 flex flex-wrap gap-3 border-t bg-card px-6 py-4">
       <Button
         type="submit"
         name="intent"
@@ -45,15 +46,21 @@ function Botones({ aprobado }: { aprobado: boolean }) {
         Guardar cambios
       </Button>
       {aprobado ? null : (
-        <Button
-          type="submit"
-          name="intent"
-          value="approve"
-          className="h-[42px] px-5"
-          disabled={pending}
-        >
-          {pending ? 'Guardando…' : 'Aprobar documento'}
-        </Button>
+        <>
+          <Button
+            type="submit"
+            name="intent"
+            value="approve"
+            className="h-[42px] px-5"
+            disabled={pending}
+          >
+            {pending ? 'Guardando…' : 'Aprobar documento'}
+          </Button>
+          {/* Manda el formulario del motivo, que está justo encima. */}
+          <Button type="submit" form="rechazo" variant="destructive" className="h-[42px] px-5">
+            Rechazar documento
+          </Button>
+        </>
       )}
     </div>
   )

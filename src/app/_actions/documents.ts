@@ -11,6 +11,7 @@ import { getRequest } from '@/data/requests'
 import { processDocument } from '@/lib/ai/process-document'
 import { requireProfile } from '@/lib/auth-guards'
 import { checkUpload, MAX_FILE_BYTES } from '@/lib/files'
+import { checkRateLimit } from '@/lib/rate-limit'
 import type { FormState } from '@/lib/form'
 import type { CurrentProfile } from '@/data/profile'
 
@@ -20,6 +21,10 @@ import type { CurrentProfile } from '@/data/profile'
  * Están aquí, y no junto a una ruta, porque las usan dos pantallas: la del cliente y la del asesor.
  * Cada una vuelve a comprobar quién es y si ese expediente está a su alcance.
  */
+
+// Cuántos documentos puede subir una persona en una hora.
+const MAX_UPLOADS = 60
+const UPLOAD_WINDOW_MS = 60 * 60 * 1000
 
 const uploadSchema = z.object({
   dossierId: z.uuid(),
@@ -83,6 +88,13 @@ export async function uploadDocumentAction(
   const bytes = await file.arrayBuffer()
   const check = checkUpload({ size: bytes.byteLength, bytes: new Uint8Array(bytes.slice(0, 16)) })
   if (!check.ok) return { fieldErrors: { file: check.message } }
+
+  // Subir cuesta espacio y dispara una lectura de la IA: hay tope por persona y hora
+  // (docs/security.md · «Límites y errores»). Se gasta aquí, cuando el archivo ya es válido.
+  const limite = checkRateLimit(`subida:${profile.id}`, MAX_UPLOADS, UPLOAD_WINDOW_MS)
+  if (!limite.allowed) {
+    return { error: 'Has subido muchos documentos seguidos. Prueba dentro de un rato.' }
+  }
 
   const result = await uploadDocument({
     clientId: dossier.clientId,

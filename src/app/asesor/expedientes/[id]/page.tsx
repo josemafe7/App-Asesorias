@@ -16,7 +16,7 @@ import { getDossier } from '@/data/dossiers'
 import { listRequests } from '@/data/requests'
 import { APP_NAME } from '@/lib/app-config'
 import { requireRole } from '@/lib/auth-guards'
-import { formatDay, isOverdue, quarterLabel, todayInSpain } from '@/lib/dates'
+import { formatDay, formatMoment, isOverdue, quarterLabel, todayInSpain } from '@/lib/dates'
 import { canSendReminder } from '@/lib/reminders'
 
 import { toggleDossierStatusAction } from '../actions'
@@ -59,6 +59,22 @@ export default async function ExpedienteDelAsesorPage({
   const hoy = todayInSpain()
   const ahora = new Date()
   const abierto = dossier.status === 'open'
+
+  // M6 y M7 · De cada solicitud pendiente, si se le puede mandar recordatorio ahora y, si no, cuándo.
+  const recordatorios = new Map(
+    requests.map((request) => {
+      const puede = canSendReminder(
+        {
+          status: request.status,
+          dueDate: request.dueDate,
+          reminderSentAt: request.reminderSentAt ? new Date(request.reminderSentAt) : null,
+        },
+        { now: ahora, today: hoy, automatic: false },
+      )
+
+      return [request.id, { ok: puede.ok, retryAt: puede.ok ? undefined : puede.retryAt }] as const
+    }),
+  )
 
   return (
     <AppShell profile={profile} nav={[{ href: '/asesor', label: 'Mis clientes' }]}>
@@ -118,21 +134,13 @@ export default async function ExpedienteDelAsesorPage({
                 />
                 {request.status === 'pending' ? (
                   <>
-                    {/* M6 y M7 · Se puede insistir, pero no antes de 24 horas. */}
-                    {canSendReminder(
-                      {
-                        status: request.status,
-                        dueDate: request.dueDate,
-                        reminderSentAt: request.reminderSentAt
-                          ? new Date(request.reminderSentAt)
-                          : null,
-                      },
-                      { now: ahora, today: hoy, automatic: false },
-                    ).ok ? (
+                    {recordatorios.get(request.id)?.ok ? (
                       <ReminderButton requestId={request.id} />
                     ) : (
-                      <span className="text-[13px] text-muted-foreground">
-                        Recordado hace menos de un día
+                      // M7 · Si no han pasado 24 horas, se dice cuándo se podrá volver a enviar.
+                      <span className="text-[13px] tabular-nums text-muted-foreground">
+                        Se podrá recordar el{' '}
+                        {formatMoment(recordatorios.get(request.id)?.retryAt ?? ahora)}
                       </span>
                     )}
                     <CancelRequestButton requestId={request.id} />
@@ -169,7 +177,12 @@ export default async function ExpedienteDelAsesorPage({
       <section className="mt-4 rounded-xl border bg-card p-6 shadow-card">
         <h2 className="text-[22px] font-semibold tracking-[-0.01em]">Documentos</h2>
 
-        <DocumentList documents={documents} canDelete={() => true} review />
+        {/* «Quién puede hacer qué»: borrar documentos no está entre lo que hace el asesor. */}
+        <DocumentList
+          documents={documents}
+          canDelete={() => profile.role === 'admin'}
+          review
+        />
 
         <div className="mt-6 border-t pt-5">
           <h3 className="text-[17px] font-semibold">Subir un documento</h3>

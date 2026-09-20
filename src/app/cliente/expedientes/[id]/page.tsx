@@ -111,28 +111,17 @@ export default async function ExpedienteDelClientePage({
       <section className="mt-4 rounded-xl border bg-card p-6 shadow-card">
         <h2 className="text-[22px] font-semibold tracking-[-0.01em]">Tus documentos</h2>
 
-        {/* D7 · Mientras no esté aprobado, puede quitarlo y subir otro. */}
-        <DocumentList
-          documents={documents}
-          canDelete={(document) => document.status !== 'approved'}
-          data={datos}
-          categories={categories}
-        />
-
-        <div className="mt-6 border-t pt-5">
+        {/* DESIGN.md · «Layout»: en el móvil del cliente, subir está siempre a mano, así que va lo
+            primero y la lista debajo. */}
+        <div className="mt-4">
           {abierto ? (
-            <>
-              <h3 className="text-[17px] font-semibold">Subir un documento</h3>
-              <div className="mt-4">
-                <UploadDocumentForm
-                  dossierId={dossier.id}
-                  requests={pendientes.map((request) => ({
-                    id: request.id,
-                    title: request.title,
-                  }))}
-                />
-              </div>
-            </>
+            <UploadDocumentForm
+              dossierId={dossier.id}
+              requests={pendientes.map((request) => ({
+                id: request.id,
+                title: request.title,
+              }))}
+            />
           ) : (
             // E4 · Con el trimestre cerrado no se suben documentos nuevos.
             <p className="text-[15px] leading-relaxed text-muted-foreground">
@@ -140,6 +129,17 @@ export default async function ExpedienteDelClientePage({
               entregar, habla con tu asesoría.
             </p>
           )}
+        </div>
+
+        {/* D7 · Mientras no esté aprobado, puede quitarlo y subir otro. */}
+        <div className="mt-6 border-t pt-5">
+          <h3 className="text-[17px] font-semibold">Lo que ya has subido</h3>
+          <DocumentList
+            documents={documents}
+            canDelete={(document) => document.status !== 'approved'}
+            data={datos}
+            categories={categories}
+          />
         </div>
       </section>
     </AppShell>

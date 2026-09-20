@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 import { rutaSesion } from './sesiones'
-import { comoSesion } from './utils'
+import { comoSesion, seedUser, sessionToken } from './utils'
 
 /**
  * Lo que propone la IA y lo que hace con ello el asesor.
@@ -13,6 +13,17 @@ import { comoSesion } from './utils'
 
 // El cliente es quien sube; la asesora, quien revisa.
 test.use({ storageState: rutaSesion('espiga-pablo') })
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+
+/** Las cabeceras con las que un cliente habla de frente con la base de datos, como desde su navegador. */
+function comoElCliente() {
+  return {
+    apikey: PUBLISHABLE_KEY!,
+    Authorization: `Bearer ${sessionToken(seedUser('espiga-pablo').email)}`,
+  }
+}
 
 function pdf(contenido: string): Buffer {
   return Buffer.from(`%PDF-1.7\n1 0 obj\n<< /Texto (${contenido}) >>\nendobj\n%%EOF\n`)
@@ -69,6 +80,26 @@ test('I1, R1, R2, R3 y R4 · la IA propone, la asesora corrige y aprueba', async
   await expect(fila.getByText('Aprobado', { exact: true })).toBeVisible()
   await expect(fila).toContainText('Iberdrola Clientes SAU')
   await expect(fila).not.toContainText('Suministros de Ejemplo SL')
+
+  // R7 · Y tampoco pidiéndoselo a la base de datos: la columna con lo que propuso la IA no se le da a
+  // nadie desde el navegador, ni con el documento aprobado.
+  const propuesta = await page.request.get(
+    `${SUPABASE_URL}/rest/v1/document_data?document_id=eq.${id}&select=ai_proposal`,
+    { headers: comoElCliente() },
+  )
+  expect(propuesta.ok(), 'un cliente ha podido leer lo que propuso la IA').toBe(false)
+
+  // D7 · Un documento aprobado no se borra ni se cambia su archivo: tampoco el archivo del almacén.
+  const ficha = await page.request.get(
+    `${SUPABASE_URL}/rest/v1/documents?id=eq.${id}&select=storage_path`,
+    { headers: comoElCliente() },
+  )
+  const [{ storage_path: ruta }] = (await ficha.json()) as { storage_path: string }[]
+
+  const borrado = await page.request.delete(`${SUPABASE_URL}/storage/v1/object/documents/${ruta}`, {
+    headers: comoElCliente(),
+  })
+  expect(borrado.ok(), 'un cliente ha borrado el archivo de un documento aprobado').toBe(false)
 
   await marta.context().close()
 })

@@ -12,9 +12,12 @@ Actions.
 Los datos, los usuarios y los archivos están en Supabase. La app habla con Supabase con la clave
 publicable, así que **todo lo que pide pasa por las reglas por filas de la base de datos**: si una política
 no deja ver un registro, no lo ve ni aunque el código se lo pida. La clave secreta, que se salta esas
-reglas, se usa en tres sitios contados: el seed, la limpieza de las pruebas y las acciones del
-administrador que **crean o borran una cuenta** (invitar a alguien), que es lo único que Supabase no deja
-hacer de otra forma. Todo lo demás, también en esas acciones, pasa por la clave publicable y sus políticas.
+reglas, se usa en cuatro sitios contados: el seed, la limpieza de las pruebas, las acciones del
+administrador que **crean o borran una cuenta** (invitar a alguien) y lo que escribe la propia app sin que
+haya una persona detrás: lo que propone la IA de un documento
+(`docs/decisions/0006-la-ia-escribe-con-la-clave-secreta.md`) y el trabajo diario de los recordatorios,
+que lo lanza un programador de tareas y no un usuario. Todo lo demás pasa por la clave publicable y sus
+políticas.
 
 Otro servicio: Resend envía los correos (las invitaciones desde la fase 2 y los recordatorios en el
 tramo 3e). Y en el tramo 3c entra OpenRouter, que lee los documentos subidos y propone sus datos.
@@ -42,6 +45,10 @@ tramo 3e). Y en el tramo 3c entra OpenRouter, que lee los documentos subidos y p
   validaciones, los roles y los porteros de permisos.
 - `src/lib/email/` · el texto de cada correo, aparte de su envío: así el texto se prueba sin llamar a
   ningún servicio. `send.ts` es el único sitio que habla con Resend.
+- `src/lib/ai/` · la lectura de documentos. `read-document.ts` es el único sitio que habla con
+  OpenRouter; `proposal.ts` decide qué se guarda de lo que responda, y se prueba sin llamar a nadie.
+- `src/app/_actions/` · las acciones que usan dos pantallas distintas (subir y borrar documentos, que
+  hacen el cliente y la asesoría).
 - `src/components/` · lo compartido entre pantallas. Los de shadcn/ui, en `src/components/ui/`.
 - `src/proxy.ts` · el proxy de Next.js. En la versión 16 se llama así, antes era `middleware`.
 - `supabase/migrations/` · cada cambio de la base de datos, en un archivo. La base se puede recrear entera
@@ -81,6 +88,30 @@ siempre de la base de datos y no de lo que quedó escrito en el formulario.
 4. Envía el correo con Resend, con el texto de la propia app. Si algo falla en los pasos 3 o 4, la cuenta
    recién creada se borra: o queda invitada del todo, o no queda nada a medias.
 5. El enlace lleva a `/auth/confirm`, que canjea el testigo y manda a poner la contraseña.
+
+## El camino de un documento
+
+1. El cliente sube un archivo desde su trimestre. La app mira **los primeros bytes** para saber qué es
+   de verdad (no se fía de lo que diga el navegador), lo guarda en el almacén privado con un nombre
+   inventado y crea su ficha.
+2. Si responde a una solicitud, un disparador de la base de datos deja esa solicitud como cumplida. Lo
+   hace la base de datos porque el usuario cliente no puede escribir en las solicitudes.
+3. Ya contestada la subida, la app manda el documento a leer a la IA. Mientras, el documento está
+   «leyéndose». Lo que la IA devuelve se filtra: lo que no se lee con seguridad se queda vacío y
+   marcado, y lo que venga se guarda también tal cual, para poder comparar. El documento queda
+   «pendiente de revisión», pase lo que pase con la IA.
+4. El asesor abre el documento, ve el archivo a un lado y los datos al otro, corrige lo que haga falta y
+   lo aprueba (con todos los campos obligatorios) o lo rechaza con un motivo.
+5. Desde que está aprobado, y solo desde entonces, el cliente ve sus datos. Y sale en el CSV del
+   trimestre.
+
+## El trabajo diario
+
+Una vez al día, el programador de tareas del servidor llama a `/api/recordatorios` con un secreto
+compartido. Esa dirección busca las solicitudes pendientes cuya fecha límite ya ha llegado, manda un
+correo por cada una a los usuarios de esa empresa y apunta la fecha del envío para no repetirlo. Sin el
+secreto no hace nada. El asesor puede mandar el mismo recordatorio a mano, pero no dos veces en menos de
+24 horas.
 
 ## Tres decisiones que explican el resto
 

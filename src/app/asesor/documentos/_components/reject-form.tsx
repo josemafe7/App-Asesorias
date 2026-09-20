@@ -1,9 +1,6 @@
 'use client'
 
 import { useActionState } from 'react'
-import { useFormStatus } from 'react-dom'
-
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { FormState } from '@/lib/form'
@@ -12,21 +9,13 @@ import { rejectDocumentAction } from '../actions'
 
 /** R5 · Rechazar un documento indicando un motivo, que es obligatorio y lo lee el cliente. */
 
-function Boton() {
-  const { pending } = useFormStatus()
-
-  return (
-    <Button type="submit" variant="destructive" className="h-[42px] px-5" disabled={pending}>
-      {pending ? 'Rechazando…' : 'Rechazar documento'}
-    </Button>
-  )
-}
-
 export function RejectForm({ documentId }: { documentId: string }) {
   const [state, formAction] = useActionState<FormState, FormData>(rejectDocumentAction, {})
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    // El botón de rechazar no está aquí: vive en la barra fija de abajo, junto al de aprobar, y
+    // manda este formulario por su identificador (DESIGN.md · «Layout»).
+    <form id="rechazo" action={formAction} className="flex flex-col gap-4">
       <input type="hidden" name="documentId" value={documentId} />
 
       <div className="flex flex-col gap-1.5">
@@ -52,10 +41,6 @@ export function RejectForm({ documentId }: { documentId: string }) {
           {state.error}
         </p>
       ) : null}
-
-      <div>
-        <Boton />
-      </div>
     </form>
   )
 }

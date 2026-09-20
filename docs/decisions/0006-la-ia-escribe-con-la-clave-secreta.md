@@ -31,6 +31,9 @@ propuesta y dejarlo «pendiente de revisión».
 
 - El cliente sigue sin poder escribir ni un campo de los datos de un documento: sus políticas solo le
   dejan **leer** los datos de los documentos ya aprobados (R7).
+- Y la propuesta de la IA no la lee nadie desde el navegador. Una política decide qué filas se ven, no
+  qué columnas: por eso la columna `ai_proposal` tiene el permiso de lectura quitado para todo el mundo
+  (migración `20260920170000`). Se guarda para poder comparar (I7) y solo la alcanza el servidor.
 - La propuesta de la IA es de fiar: solo la escribe la app.
 - La clave secreta suma un uso más a los que ya tenía (el seed, la limpieza de las pruebas y crear o
   borrar cuentas al invitar). Se usa en un único archivo, para un único fin, y nunca a partir de datos

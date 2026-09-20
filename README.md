@@ -15,9 +15,12 @@ Hace falta tener instalado **Node.js 24 o superior**, **pnpm** y **Git**.
 3. Crea un proyecto en [Supabase](https://supabase.com), **en una región de la Unión Europea**.
 4. Copia `.env.example` a `.env.local` y rellena los cuatro primeros valores. Los tres de Supabase están en
    su panel, en *Project Settings › Data API*. `NEXT_PUBLIC_SITE_URL` en local es `http://localhost:3000`.
-   Los dos del correo (`RESEND_API_KEY` y `EMAIL_FROM`) se pueden dejar en blanco mientras se construye:
-   sin ellos, los correos se escriben en la consola del servidor en vez de enviarse, con su enlace, y así
-   se puede probar la invitación sin cuenta de correo.
+   El resto se pueden dejar en blanco mientras se construye:
+   - correo (`RESEND_API_KEY`, `EMAIL_FROM`): sin ellos, los correos se escriben en la consola del
+     servidor en vez de enviarse, con su enlace, y así se prueba la invitación sin cuenta de correo;
+   - IA (`OPENROUTER_API_KEY`, `OPENROUTER_MODEL`): sin ellos, los documentos se suben igual y se
+     quedan pendientes de revisión con los campos vacíos, para rellenarlos a mano;
+   - recordatorios (`CRON_SECRET`): solo hace falta para probar el trabajo diario.
 5. Aplica las migraciones de `supabase/migrations/`, por orden de nombre, en el editor SQL de Supabase.
 6. En el panel de Supabase, en *Authentication*:
    - desactiva el registro de usuarios nuevos: las cuentas las crea el administrador;
@@ -52,12 +55,22 @@ Con los datos de ejemplo cargados, la contraseña de todos los usuarios de prueb
 | Administrador | `admin@rierabono.es` | El panel, los clientes y los usuarios de toda la asesoría |
 | Asesora | `marta@rierabono.es` | Sus clientes: La Espiga y Talleres Moreno |
 | Asesor | `javier@rierabono.es` | Sus clientes: Azahar y Ana Belmonte |
-| Cliente | `pablo@laespiga.es` | La ficha de Panadería La Espiga y el correo de su asesora |
+| Cliente | `pablo@laespiga.es` | Sus trimestres, lo que le piden, sus documentos y el correo de su asesora |
 | Otro usuario del mismo cliente | `rosa@laespiga.es` | Lo mismo que Pablo: una empresa puede tener varios usuarios |
 | Cuenta desactivada | `baja@laespiga.es` | No entra, aunque la contraseña sea correcta |
 
 Para comprobar que nadie ve lo que no debe: entra como `pablo@laespiga.es` y escribe a mano la dirección
 `/admin`. Tiene que salir «Esta página no es para ti».
+
+Para probar el trabajo diario de los recordatorios, pon un `CRON_SECRET` en `.env.local`, arranca la app
+y llama a su dirección con ese secreto:
+
+```
+curl -X POST http://localhost:3000/api/recordatorios -H "Authorization: Bearer EL-SECRETO"
+```
+
+Responde cuántos ha mandado. Sin la cabecera, responde que no está permitido. Los correos, como todo en
+local, se escriben en la consola del servidor.
 
 Las pruebas dan de alta empresas y usuarios de verdad, marcados como de prueba (el NIF empieza por `E2E` y
 el correo acaba en `@e2e.carpetafiscal.test`). Se borran solos al empezar y al terminar, y `pnpm seed`

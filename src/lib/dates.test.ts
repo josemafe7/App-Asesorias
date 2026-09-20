@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatDay, isOverdue, quarterLabel, quarterOf, todayInSpain } from './dates'
+import { formatDay, formatMoment, isOverdue, quarterLabel, quarterOf, todayInSpain } from './dates'
 
 describe('todayInSpain', () => {
   it('usa el día que es en España, no el del servidor', () => {
@@ -34,6 +34,13 @@ describe('quarterLabel', () => {
 describe('formatDay', () => {
   it('escribe la fecha como se escribe en España', () => {
     expect(formatDay('2026-03-31')).toBe('31/03/2026')
+  })
+})
+
+describe('formatMoment', () => {
+  it('dice el día y la hora que serán en España', () => {
+    // Las 7:00 en horario universal son las 9:00 en España en verano.
+    expect(formatMoment(new Date('2026-03-21T08:00:00Z'))).toBe('21/03/2026 a las 9:00')
   })
 })
 

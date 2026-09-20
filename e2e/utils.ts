@@ -1,6 +1,8 @@
+import fs from 'node:fs'
+
 import { expect, type Browser, type Locator, type Page } from '@playwright/test'
 
-import { rutaSesion } from './sesiones'
+import { RUTA_CREDENCIALES, rutaSesion } from './sesiones'
 
 import {
   DEMO_PASSWORD,
@@ -10,6 +12,25 @@ import {
 } from '../scripts/seed-data.mts'
 
 export { DEMO_PASSWORD, SEED_USERS }
+
+/**
+ * La credencial de una persona, igual que la que lleva su navegador.
+ *
+ * No se pide aquí: la guardó `e2e/sesiones.setup.ts` al empezar. Supabase limita cuántos inicios de
+ * sesión acepta seguidos, y una prueba por persona agotaba ese margen. Se usa para hablar con la base
+ * de datos de frente, sin pasar por la app.
+ */
+export function sessionToken(email: string): string {
+  const credenciales = JSON.parse(fs.readFileSync(RUTA_CREDENCIALES, 'utf8')) as Record<
+    string,
+    string
+  >
+  const token = credenciales[email]
+
+  if (!token) throw new Error(`No hay ninguna credencial guardada para ${email}`)
+
+  return token
+}
 
 /** Busca un usuario de ejemplo por su clave, para no repetir correos sueltos por las pruebas. */
 export function seedUser(key: string) {

@@ -27,6 +27,11 @@ async function abrirTrimestre(
   await marta.getByRole('button', { name: 'Abrir expediente' }).click()
 }
 
+/** La fila de la lista que habla de eso, y no cualquier sitio donde salga ese texto. */
+function enLaLista(page: Page, texto: string) {
+  return page.getByRole('listitem').filter({ hasText: texto }).first()
+}
+
 /** S1 · Pide documentación con su fecha límite. */
 async function pedir(marta: Page, titulo: string, fecha: string): Promise<void> {
   await marta.getByLabel('Qué hace falta').fill(titulo)
@@ -52,8 +57,9 @@ test.describe('lo que hace la asesoría', () => {
     await pedir(marta, 'Facturas de compras de enero', '2026-12-31')
     await pedir(marta, 'Tickets de gasolina del trimestre', '2026-11-30')
 
-    await expect(marta.getByText('Facturas de compras de enero')).toBeVisible()
-    await expect(marta.getByText('Tickets de gasolina del trimestre')).toBeVisible()
+    // Se mira la lista de lo pedido: el desplegable de subir documentos repite los mismos títulos.
+    await expect(enLaLista(marta, 'Facturas de compras de enero')).toBeVisible()
+    await expect(enLaLista(marta, 'Tickets de gasolina del trimestre')).toBeVisible()
     await expect(marta.getByText('31/12/2026')).toBeVisible()
 
     // Y el cliente las tiene en su expediente, contadas desde su ficha.

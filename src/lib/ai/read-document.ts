@@ -38,7 +38,8 @@ Reglas que no se negocian:
 - Los importes van en euros, con punto decimal. vatRate es el porcentaje de IVA: 21, 10, 4 o 0.
 - La fecha va como AAAA-MM-DD.`
 
-const proposalSchema = z.object({
+/** Lo que se le pide al modelo. Lo usa también la comprobación de mantenimiento del modelo. */
+export const proposalSchema = z.object({
   date: z.string().nullable(),
   supplier: z.string().nullable(),
   supplierTaxId: z.string().nullable(),

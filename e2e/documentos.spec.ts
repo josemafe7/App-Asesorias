@@ -103,6 +103,21 @@ test('S4 · al subir respondiendo a una solicitud, esa solicitud queda cumplida'
   ).toBeVisible()
 })
 
+test('D2 · un archivo de 20 MB se rechaza', async ({ page }) => {
+  await abrirTrimestre(page, '2026 · T1')
+
+  // Veinte megas de PDF: pasa de los diez que se admiten.
+  const enorme = Buffer.concat([Buffer.from('%PDF-1.7\n'), Buffer.alloc(20 * 1024 * 1024, 0x20)])
+  await page.getByLabel('Archivo').setInputFiles({
+    name: 'E2E-enorme.pdf',
+    mimeType: 'application/pdf',
+    buffer: enorme,
+  })
+
+  await expect(page.getByText(/Solo se admiten archivos JPG, PNG, WebP o PDF/)).toBeVisible()
+  await expect(page.getByRole('link', { name: 'E2E-enorme.pdf' })).toBeHidden()
+})
+
 test('D3 · un archivo que no es lo que dice ser se rechaza', async ({ page }) => {
   await abrirTrimestre(page, '2026 · T1')
 

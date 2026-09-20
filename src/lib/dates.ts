@@ -59,6 +59,24 @@ export function isDay(value: string): boolean {
   return !Number.isNaN(fecha.getTime()) && fecha.toISOString().slice(0, 10) === value
 }
 
+/** Un momento concreto, como se dice en España: `21/03/2026 a las 9:00`. */
+export function formatMoment(date: Date): string {
+  const partes = Object.fromEntries(
+    new Intl.DateTimeFormat('es-ES', {
+      timeZone: 'Europe/Madrid',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    })
+      .formatToParts(date)
+      .map((parte) => [parte.type, parte.value]),
+  )
+
+  return `${partes.day}/${partes.month}/${partes.year} a las ${partes.hour}:${partes.minute}`
+}
+
 /** S6 · Una solicitud está vencida cuando su fecha límite ya ha pasado. El mismo día, todavía no. */
 export function isOverdue(dueDate: DayString, today: DayString = todayInSpain()): boolean {
   return dueDate < today

@@ -10,10 +10,12 @@ silencio.
 - Next.js manda al navegador toda variable que empieza por `NEXT_PUBLIC_`: solo la llevan las que están
   hechas para ser públicas, como la URL y la clave publicable de Supabase.
 - La clave secreta de Supabase se salta Row Level Security: solo en el servidor y solo cuando no haya otra
-  forma. Hoy eso es el seed, la limpieza de las pruebas y crear o borrar la cuenta de un usuario al
-  invitarle (`src/lib/supabase/admin.ts`), siempre después de comprobar que quien lo pide es
-  administrador. Los datos de la app se leen y se escriben con la clave publicable, para que las políticas
-  sigan mandando.
+  forma. Hoy eso es el seed, la limpieza de las pruebas, crear o borrar la cuenta de un usuario al
+  invitarle (`src/lib/supabase/admin.ts`) y lo que escribe la app sin que haya una persona detrás: lo que
+  propone la IA de un documento (`src/data/document-data.ts`, ver `docs/decisions/0006`) y el trabajo
+  diario de los recordatorios (`src/data/reminders.ts`), que lo lanza el programador de tareas del
+  servidor. En los dos primeros casos, siempre después de comprobar que quien lo pide es administrador.
+  Los datos de la app se leen y se escriben con la clave publicable, para que las políticas sigan mandando.
 - Cuando hay dos proyectos de Supabase, cada uno tiene sus claves: `.env.local` lleva las de desarrollo, y
   las de producción solo están en las variables de entorno de la aplicación en el panel de Dokploy.
 - Si una clave se filtra (en un commit, una captura o un chat), se revoca y se crea otra. Borrarla del
@@ -90,7 +92,11 @@ silencio.
 - Las llamadas a la IA tienen tope de tokens por petición y de uso por usuario, y el panel del proveedor,
   límite de gasto mensual (o alertas, si no lo permite).
 - Enviar correo cuesta dinero: las invitaciones tienen un tope por administrador y hora
-  (`src/app/admin/usuarios/actions.ts`).
+  (`src/app/admin/usuarios/actions.ts`) y los recordatorios que manda el asesor a mano, otro
+  (`src/app/asesor/expedientes/actions.ts`), además de las 24 horas que exige la regla M7.
+- Subir documentos y mandarlos a leer también tienen su tope por persona y hora
+  (`src/app/_actions/documents.ts` y `src/lib/ai/process-document.ts`): el almacén y la IA cuestan
+  dinero. Además, el trabajo diario de los recordatorios solo responde con el secreto acordado.
 - Next.js ya oculta en producción los errores de los Server Components; las Server Actions y los Route
   Handlers nunca devuelven `error.message`, trazas ni detalles de la base de datos.
 - Si una comprobación de seguridad falla o da error, se deniega el acceso.
@@ -199,4 +205,4 @@ Una app publicada se queda vieja aunque nadie la toque. Cuando pida el mantenimi
 |---|---|---|
 | Los registros de intentos de acceso fallidos guardan la dirección IP de origen, aunque la regla de `AGENTS.md` dice que en los logs no aparezcan datos personales | Sin la IP no hay forma de ver que alguien está probando contraseñas en bucle desde un mismo sitio, ni de bloquearlo en el cortafuegos. Es la finalidad de seguridad la que lo justifica. Se guarda lo mínimo: la IP y la hora, nunca el correo probado ni la contraseña. Si algún día los registros se conservan más allá de unos días, habrá que revisar este punto | Josema, 2026-09-20 |
 | `trustPolicyIgnoreAfter: 525600` en `pnpm-workspace.yaml`: la comprobación de «versión con menos garantías que las anteriores» solo se aplica a lo publicado en el último año | Tres paquetes viejos del ecosistema de ESLint (`undici-types@6.21.0`, `eslint-import-resolver-typescript@3.10.1` y `semver@6.3.1`, de 2022) bloqueaban la instalación. No son incidentes: son anteriores a que existieran las pruebas de procedencia, y exigírselas no detecta ataques, solo frena paquetes conocidos. Lo que de verdad protege sigue entero: `minimumReleaseAge: 10080` no instala nada con menos de 7 días, y la comprobación de confianza sigue siendo estricta en todo lo publicado en el último año, que es donde ocurren los ataques | Josema, 2026-09-20 |
-| Usar `google/gemini-3-flash-preview`, un modelo en preview, cuando la regla de `AGENTS.md` dice no usar betas ni preview | Decisión expresa del responsable del proyecto por coste. Se mitiga así: el identificador vive en la variable `OPENROUTER_MODEL` y se cambia sin tocar código; la respuesta se valida siempre contra un esquema Zod, así que un cambio de comportamiento deja campos pendientes en lugar de datos falsos; hay una prueba que avisa si el modelo deja de responder al esquema; y en cada mantenimiento se comprueba que sigue disponible | Josema, 2026-09-20 |
+| Usar `google/gemini-3-flash-preview`, un modelo en preview, cuando la regla de `AGENTS.md` dice no usar betas ni preview | Decisión expresa del responsable del proyecto por coste. Se mitiga así: el identificador vive en la variable `OPENROUTER_MODEL` y se cambia sin tocar código; la respuesta se valida siempre contra un esquema Zod, así que un cambio de comportamiento deja campos pendientes en lugar de datos falsos; y en cada mantenimiento se pasa la comprobación de `src/lib/ai/modelo.test.ts`, que llama al modelo con una factura de ejemplo y avisa si ha dejado de existir o de responder al esquema (no se ejecuta con `pnpm test`, porque la IA cuesta dinero) | Josema, 2026-09-20 |
