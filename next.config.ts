@@ -25,6 +25,11 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   // Se publica en un VPS dentro de una imagen de Docker: deja solo lo necesario para ejecutarla.
   output: 'standalone',
+  // D2 · Un documento puede pesar hasta 10 MB, y el cuerpo de una Server Action viene limitado a 1 MB.
+  // Se sube justo lo necesario: más que eso, además, lo rechaza el propio almacén.
+  experimental: {
+    serverActions: { bodySizeLimit: '11mb' },
+  },
   // No anunciamos con qué está hecha la app.
   poweredByHeader: false,
   async headers() {

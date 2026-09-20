@@ -99,6 +99,67 @@ export type Database = {
           },
         ]
       }
+      documents: {
+        Row: {
+          created_at: string
+          dossier_id: string
+          id: string
+          mime_type: string
+          original_name: string
+          request_id: string | null
+          size_bytes: number
+          status: Database["public"]["Enums"]["document_status"]
+          storage_path: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          dossier_id: string
+          id?: string
+          mime_type: string
+          original_name: string
+          request_id?: string | null
+          size_bytes: number
+          status?: Database["public"]["Enums"]["document_status"]
+          storage_path: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          dossier_id?: string
+          id?: string
+          mime_type?: string
+          original_name?: string
+          request_id?: string | null
+          size_bytes?: number
+          status?: Database["public"]["Enums"]["document_status"]
+          storage_path?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_request_same_dossier"
+            columns: ["request_id", "dossier_id"]
+            isOneToOne: false
+            referencedRelation: "document_requests"
+            referencedColumns: ["id", "dossier_id"]
+          },
+          {
+            foreignKeyName: "documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dossiers: {
         Row: {
           client_id: string
@@ -180,6 +241,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      document_status:
+        | "uploaded"
+        | "reading"
+        | "pending_review"
+        | "approved"
+        | "rejected"
       dossier_status: "open" | "closed"
       request_status: "pending" | "fulfilled" | "cancelled"
       user_role: "admin" | "advisor" | "client"
@@ -310,6 +377,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      document_status: [
+        "uploaded",
+        "reading",
+        "pending_review",
+        "approved",
+        "rejected",
+      ],
       dossier_status: ["open", "closed"],
       request_status: ["pending", "fulfilled", "cancelled"],
       user_role: ["admin", "advisor", "client"],

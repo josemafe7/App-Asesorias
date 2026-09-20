@@ -5,6 +5,7 @@ import type { Metadata } from 'next'
 import { AppShell } from '@/components/app-shell'
 import { DossierPill, RequestPill } from '@/components/status-pill'
 import { getAdvisor, getClient } from '@/data/clients'
+import { countDocumentsByDossier } from '@/data/documents'
 import { listDossiers } from '@/data/dossiers'
 import { countPendingByDossier, listPendingRequestsForClient } from '@/data/requests'
 import { APP_NAME } from '@/lib/app-config'
@@ -34,7 +35,11 @@ export default async function ClientePage() {
     listPendingRequestsForClient(),
     client ? listDossiers(client.id) : Promise.resolve([]),
   ])
-  const pendientesPorExpediente = await countPendingByDossier(dossiers.map((d) => d.id))
+  const identificadores = dossiers.map((dossier) => dossier.id)
+  const [pendientesPorExpediente, documentosPorExpediente] = await Promise.all([
+    countPendingByDossier(identificadores),
+    countDocumentsByDossier(identificadores),
+  ])
 
   const hoy = todayInSpain()
 
@@ -100,6 +105,7 @@ export default async function ClientePage() {
                   </span>
                   <DossierPill status={dossier.status} />
                   <span className="text-[15px] text-muted-foreground">
+                    {documentosPorExpediente.get(dossier.id) ?? 0} documentos ·{' '}
                     {pendientesPorExpediente.get(dossier.id) ?? 0} pendientes
                   </span>
                 </Link>

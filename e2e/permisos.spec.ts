@@ -301,6 +301,40 @@ test('un asesor no ve los perfiles de los usuarios de otro asesor', async ({ req
   expect(correos).toContain(seedUser('javier').email)
 })
 
+// E4 · Con el expediente cerrado el cliente no sube documentos. La pantalla ni siquiera le enseña el
+// formulario, así que aquí se comprueba atacando la base de datos con su propia credencial.
+test('E4 · un cliente no cuela un documento en un trimestre cerrado', async ({ request }) => {
+  const pablo = seedUser('espiga-pablo')
+  const token = sessionToken(pablo.email)
+
+  const profiles = (await readTable(request, 'profiles', token)) as { id: string; email: string }[]
+  const suyo = profiles.find((profile) => profile.email === pablo.email)
+  expect(suyo, 'no se ha encontrado el perfil de Pablo').toBeTruthy()
+
+  const dossiers = (await readTable(request, 'dossiers', token)) as { id: string; status: string }[]
+  const cerrado = dossiers.find((dossier) => dossier.status === 'closed')
+  expect(cerrado, 'no hay ningún trimestre cerrado en los datos de ejemplo').toBeTruthy()
+
+  const response = await request.post(`${SUPABASE_URL}/rest/v1/documents`, {
+    headers: {
+      apikey: PUBLISHABLE_KEY!,
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+    },
+    data: {
+      dossier_id: cerrado!.id,
+      original_name: 'E2E colado en un trimestre cerrado.pdf',
+      mime_type: 'application/pdf',
+      size_bytes: 1024,
+      storage_path: `E2E-colado-${Date.now()}.pdf`,
+      uploaded_by: suyo!.id,
+    },
+  })
+
+  expect(response.ok(), 'un cliente ha colado un documento en un trimestre cerrado').toBe(false)
+})
+
 test('un asesor no puede crear perfiles ni cambiar el rol de nadie', async ({ request }) => {
   const token = sessionToken(seedUser('marta').email)
 

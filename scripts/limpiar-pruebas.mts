@@ -11,7 +11,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 
-import { E2E_EMAIL_DOMAIN, E2E_TAX_ID_PREFIX } from './seed-data.mts'
+import { E2E_EMAIL_DOMAIN, E2E_FILE_PREFIX, E2E_TAX_ID_PREFIX } from './seed-data.mts'
 
 export async function borrarDatosDePruebas(): Promise<void> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -36,6 +36,30 @@ export async function borrarDatosDePruebas(): Promise<void> {
       const { error: deleteError } = await admin.auth.admin.deleteUser(user.id)
       if (deleteError) throw new Error(`No se ha podido borrar una cuenta: ${deleteError.message}`)
     }
+  }
+
+  // Los documentos que las pruebas suben a las empresas de ejemplo: primero sus archivos del almacén
+  // privado y después sus fichas. Los de las empresas de prueba se van solos con la empresa.
+  const { data: documentos, error: documentosError } = await admin
+    .from('documents')
+    .select('id, storage_path')
+    .like('original_name', `${E2E_FILE_PREFIX}%`)
+
+  if (documentosError) {
+    throw new Error(`No se han podido leer los documentos de prueba: ${documentosError.message}`)
+  }
+
+  if (documentos && documentos.length > 0) {
+    await admin.storage.from('documents').remove(documentos.map((row) => row.storage_path))
+
+    const { error } = await admin
+      .from('documents')
+      .delete()
+      .in(
+        'id',
+        documentos.map((row) => row.id),
+      )
+    if (error) throw new Error(`No se han podido borrar los documentos de prueba: ${error.message}`)
   }
 
   // Y después las empresas, que ya no tienen usuarios colgando.

@@ -5,10 +5,13 @@ import type { Metadata } from 'next'
 import { z } from 'zod'
 
 import { AppShell } from '@/components/app-shell'
+import { DocumentList } from '@/components/document-list'
 import { Notice } from '@/components/notice'
 import { DossierPill, RequestPill } from '@/components/status-pill'
 import { Button } from '@/components/ui/button'
+import { UploadDocumentForm } from '@/components/upload-document-form'
 import { getClient } from '@/data/clients'
+import { listDocuments } from '@/data/documents'
 import { getDossier } from '@/data/dossiers'
 import { listRequests } from '@/data/requests'
 import { APP_NAME } from '@/lib/app-config'
@@ -22,7 +25,10 @@ import { CancelRequestButton } from '../_components/cancel-request-button'
 export const metadata: Metadata = { title: 'Expediente · ' + APP_NAME }
 
 // Lo que llega por la dirección también se valida, aunque sea un aviso (docs/security.md).
-const searchSchema = z.object({ creada: z.literal('1').optional().catch(undefined) })
+const searchSchema = z.object({
+  creada: z.literal('1').optional().catch(undefined),
+  subido: z.literal('1').optional().catch(undefined),
+})
 
 export default async function ExpedienteDelAsesorPage({
   params,
@@ -34,16 +40,17 @@ export default async function ExpedienteDelAsesorPage({
   const profile = await requireRole('admin', 'advisor')
 
   const { id } = await params
-  const { creada } = searchSchema.parse(await searchParams)
+  const { creada, subido } = searchSchema.parse(await searchParams)
 
   // R8 y C4 · Si el expediente no es de un cliente suyo, las políticas no lo devuelven: «no tienes
   // permiso», nunca el contenido.
   const dossier = z.uuid().safeParse(id).success ? await getDossier(id) : null
   if (!dossier) redirect('/sin-permiso')
 
-  const [client, requests] = await Promise.all([
+  const [client, requests, documents] = await Promise.all([
     getClient(dossier.clientId),
     listRequests(dossier.id),
+    listDocuments(dossier.id),
   ])
 
   const hoy = todayInSpain()
@@ -68,6 +75,7 @@ export default async function ExpedienteDelAsesorPage({
       <p className="mt-1 text-[15px] text-muted-foreground">{client?.legalName}</p>
 
       {creada ? <Notice>Solicitud creada. Tu cliente ya la ve en su panel.</Notice> : null}
+      {subido ? <Notice>Documento subido.</Notice> : null}
 
       <section className="mt-6 rounded-xl border bg-card p-6 shadow-card">
         <h2 className="text-[22px] font-semibold tracking-[-0.01em]">Documentación pedida</h2>
@@ -110,6 +118,24 @@ export default async function ExpedienteDelAsesorPage({
           <h3 className="text-[17px] font-semibold">Pedir documentación</h3>
           <div className="mt-4">
             <RequestForm dossierId={dossier.id} today={hoy} />
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-4 rounded-xl border bg-card p-6 shadow-card">
+        <h2 className="text-[22px] font-semibold tracking-[-0.01em]">Documentos</h2>
+
+        <DocumentList documents={documents} canDelete={() => true} />
+
+        <div className="mt-6 border-t pt-5">
+          <h3 className="text-[17px] font-semibold">Subir un documento</h3>
+          <div className="mt-4">
+            <UploadDocumentForm
+              dossierId={dossier.id}
+              requests={requests
+                .filter((request) => request.status === 'pending')
+                .map((request) => ({ id: request.id, title: request.title }))}
+            />
           </div>
         </div>
       </section>

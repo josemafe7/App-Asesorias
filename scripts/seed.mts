@@ -76,7 +76,13 @@ async function upsertUser(user: SeedUser): Promise<string> {
   return data.user.id
 }
 
-async function main(): Promise<void> {
+/**
+ * Deja la base de datos con los datos de ejemplo, tal cual están en `seed-data.mts`.
+ *
+ * La usan `pnpm seed` y las pruebas de Playwright antes de empezar, para que cada vuelta arranque
+ * siempre desde el mismo sitio (docs/testing.md).
+ */
+export async function cargarSeed(): Promise<void> {
   // Lo que dejaron las pruebas no es dato real: se borra antes de mirar si aquí hay datos de verdad.
   await borrarDatosDePruebas()
   await refuseIfRealData()
@@ -178,11 +184,19 @@ async function main(): Promise<void> {
     }
   }
 
-  console.log(`Listo: ${SEED_USERS.length} usuarios y ${SEED_CLIENTS.length} clientes de ejemplo.`)
-  console.log(`Contraseña de todos: ${DEMO_PASSWORD}`)
 }
 
-main().catch((error: unknown) => {
-  console.error(error instanceof Error ? error.message : error)
-  process.exit(1)
-})
+// Solo cuando se ejecuta a mano con `pnpm seed`, no cuando lo importa otro archivo.
+if (process.argv[1]?.endsWith('seed.mts')) {
+  cargarSeed()
+    .then(() => {
+      console.log(
+        `Listo: ${SEED_USERS.length} usuarios y ${SEED_CLIENTS.length} clientes de ejemplo.`,
+      )
+      console.log(`Contraseña de todos: ${DEMO_PASSWORD}`)
+    })
+    .catch((error: unknown) => {
+      console.error(error instanceof Error ? error.message : error)
+      process.exit(1)
+    })
+}

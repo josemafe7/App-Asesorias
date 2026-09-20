@@ -63,3 +63,24 @@ export function RequestPill({
     <StatusPill tone={overdue ? 'urgent' : 'neutral'}>{overdue ? 'Vencida' : 'Pendiente'}</StatusPill>
   )
 }
+
+/** D8 · El estado visible de un documento. */
+const DOCUMENT_LABELS = {
+  uploaded: 'Subido',
+  reading: 'Leyéndose',
+  pending_review: 'Pendiente de revisión',
+  approved: 'Aprobado',
+  rejected: 'Rechazado',
+} as const
+
+const DOCUMENT_TONES = {
+  uploaded: 'neutral',
+  reading: 'neutral',
+  pending_review: 'urgent',
+  approved: 'success',
+  rejected: 'danger',
+} as const
+
+export function DocumentPill({ status }: { status: keyof typeof DOCUMENT_LABELS }) {
+  return <StatusPill tone={DOCUMENT_TONES[status]}>{DOCUMENT_LABELS[status]}</StatusPill>
+}

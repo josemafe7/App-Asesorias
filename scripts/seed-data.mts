@@ -148,6 +148,8 @@ export const SEED_DOSSIERS: SeedDossier[] = [
     status: 'open',
     requests: [{ title: 'Facturas de recambios de febrero', dueInDays: 7 }],
   },
+  // E4 · Un trimestre ya cerrado, para ver que el cliente no puede subir nada en él.
+  { clientKey: 'espiga', year: 2025, quarter: 4, status: 'closed', requests: [] },
   { clientKey: 'azahar', year: 2025, quarter: 4, status: 'closed', requests: [] },
 ]
 
@@ -159,4 +161,6 @@ export const SEED_DOSSIERS: SeedDossier[] = [
  * dominio reservado que no existe ni puede existir. El seed los borra y las pruebas, también.
  */
 export const E2E_TAX_ID_PREFIX = 'E2E'
+/** Los documentos que suben las pruebas llevan esta marca en el nombre del archivo. */
+export const E2E_FILE_PREFIX = 'E2E'
 export const E2E_EMAIL_DOMAIN = 'e2e.carpetafiscal.test'

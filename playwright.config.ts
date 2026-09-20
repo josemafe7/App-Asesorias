@@ -12,8 +12,9 @@ const BASE_URL = process.env.E2E_BASE_URL ?? 'http://localhost:3000'
 
 export default defineConfig({
   testDir: './e2e',
-  // Las pruebas dan de alta empresas y usuarios de verdad: se borran antes de empezar y al terminar.
-  globalSetup: './e2e/limpieza.ts',
+  // Antes de empezar se recarga el seed, que borra lo que dejaran las pruebas anteriores; al
+  // terminar se limpia lo de esta vuelta.
+  globalSetup: './e2e/preparar.ts',
   globalTeardown: './e2e/limpieza.ts',
   // Las pruebas no dependen unas de otras ni del orden (docs/testing.md).
   fullyParallel: true,

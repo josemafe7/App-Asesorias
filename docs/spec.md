@@ -250,7 +250,7 @@ clientes.
 
       Tramos. Cada uno acaba con `pnpm check` en verde, su marca aquí y un commit de guardado:
       - [x] 3a · Expedientes y solicitudes (E1, E2, E3, E5, S1, S2, S3, S5, S6)
-      - [ ] 3b · Subida de documentos (D1-D8, y con ellos E4 y S4)
+      - [x] 3b · Subida de documentos (D1-D8, y con ellos E4 y S4)
       - [ ] 3c · Lectura automática con IA (I1-I8)
       - [ ] 3d · Revisión y aprobación (R1-R8)
       - [ ] 3e · Recordatorios y exportación CSV (M1-M7, X1-X6)
