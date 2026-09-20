@@ -46,6 +46,27 @@ async function subir(
   await page.getByRole('button', { name: 'Subir documento' }).click()
 }
 
+/**
+ * La lectura de la IA ocurre después de contestar a la subida, así que la pantalla se recarga hasta
+ * que el estado cambia. En las pruebas la IA está simulada (docs/testing.md).
+ */
+async function esperarEstado(page: Page, nombre: string, estado: string): Promise<void> {
+  await expect(async () => {
+    await page.reload()
+    await expect(fila(page, nombre).getByText(estado, { exact: true })).toBeVisible({
+      timeout: 1000,
+    })
+  }).toPass({ timeout: 20_000 })
+}
+
+test('I1 y D8 · lo subido se manda a leer y queda pendiente de revisión', async ({ page }) => {
+  await abrirTrimestre(page, '2026 · T1')
+
+  await subir(page, { name: 'E2E-factura-legible.pdf', mimeType: 'application/pdf', buffer: PDF })
+
+  await esperarEstado(page, 'E2E-factura-legible.pdf', 'Pendiente de revisión')
+})
+
 test('D1, D6 y D8 · sube una foto, la ve en su expediente y puede abrirla', async ({ page }) => {
   await abrirTrimestre(page, '2026 · T1')
 

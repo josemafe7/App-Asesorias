@@ -128,7 +128,7 @@ export async function uploadDocument(input: {
   size: number
   bytes: ArrayBuffer
   uploadedBy: string
-}): Promise<SaveResult> {
+}): Promise<{ ok: true; id: string } | { ok: false; message: string }> {
   const supabase = await createClient()
 
   const path = `${input.clientId}/${input.dossierId}/${crypto.randomUUID()}.${extensionFor(input.type)}`
@@ -142,23 +142,27 @@ export async function uploadDocument(input: {
     return { ok: false, message: 'No se ha podido guardar el archivo. Inténtalo otra vez.' }
   }
 
-  const { error } = await supabase.from('documents').insert({
-    dossier_id: input.dossierId,
-    request_id: input.requestId,
-    original_name: input.originalName,
-    mime_type: input.type,
-    size_bytes: input.size,
-    storage_path: path,
-    uploaded_by: input.uploadedBy,
-  })
+  const { data, error } = await supabase
+    .from('documents')
+    .insert({
+      dossier_id: input.dossierId,
+      request_id: input.requestId,
+      original_name: input.originalName,
+      mime_type: input.type,
+      size_bytes: input.size,
+      storage_path: path,
+      uploaded_by: input.uploadedBy,
+    })
+    .select('id')
+    .single()
 
-  if (error) {
+  if (error || !data) {
     await supabase.storage.from(BUCKET).remove([path])
     console.error('[documentos] archivo guardado sin ficha, se deshace')
     return { ok: false, message: 'No se ha podido guardar el documento. Inténtalo otra vez.' }
   }
 
-  return { ok: true }
+  return { ok: true, id: data.id }
 }
 
 /**

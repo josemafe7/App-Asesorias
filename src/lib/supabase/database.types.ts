@@ -58,6 +58,75 @@ export type Database = {
           },
         ]
       }
+      document_data: {
+        Row: {
+          ai_proposal: Json | null
+          approved_at: string | null
+          approved_by: string | null
+          category_code: string | null
+          document_id: string
+          issue_date: string | null
+          needs_review: boolean
+          pending_fields: string[]
+          supplier: string | null
+          supplier_tax_id: string | null
+          tax_base: number | null
+          total: number | null
+          updated_at: string
+          vat_amount: number | null
+          vat_rate: number | null
+        }
+        Insert: {
+          ai_proposal?: Json | null
+          approved_at?: string | null
+          approved_by?: string | null
+          category_code?: string | null
+          document_id: string
+          issue_date?: string | null
+          needs_review?: boolean
+          pending_fields?: string[]
+          supplier?: string | null
+          supplier_tax_id?: string | null
+          tax_base?: number | null
+          total?: number | null
+          updated_at?: string
+          vat_amount?: number | null
+          vat_rate?: number | null
+        }
+        Update: {
+          ai_proposal?: Json | null
+          approved_at?: string | null
+          approved_by?: string | null
+          category_code?: string | null
+          document_id?: string
+          issue_date?: string | null
+          needs_review?: boolean
+          pending_fields?: string[]
+          supplier?: string | null
+          supplier_tax_id?: string | null
+          tax_base?: number | null
+          total?: number | null
+          updated_at?: string
+          vat_amount?: number | null
+          vat_rate?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_data_category_code_fkey"
+            columns: ["category_code"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "document_data_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: true
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_requests: {
         Row: {
           created_at: string
@@ -106,6 +175,7 @@ export type Database = {
           id: string
           mime_type: string
           original_name: string
+          rejection_reason: string | null
           request_id: string | null
           size_bytes: number
           status: Database["public"]["Enums"]["document_status"]
@@ -118,6 +188,7 @@ export type Database = {
           id?: string
           mime_type: string
           original_name: string
+          rejection_reason?: string | null
           request_id?: string | null
           size_bytes: number
           status?: Database["public"]["Enums"]["document_status"]
@@ -130,6 +201,7 @@ export type Database = {
           id?: string
           mime_type?: string
           original_name?: string
+          rejection_reason?: string | null
           request_id?: string | null
           size_bytes?: number
           status?: Database["public"]["Enums"]["document_status"]
@@ -194,6 +266,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      expense_categories: {
+        Row: {
+          code: string
+          label: string
+          sort_order: number
+        }
+        Insert: {
+          code: string
+          label: string
+          sort_order: number
+        }
+        Update: {
+          code?: string
+          label?: string
+          sort_order?: number
+        }
+        Relationships: []
       }
       profiles: {
         Row: {

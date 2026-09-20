@@ -48,6 +48,17 @@ export function formatDay(day: DayString): string {
   return `${date}/${month}/${year}`
 }
 
+/**
+ * Si un texto es un día de verdad: `2026-02-31` tiene la forma de una fecha, pero no existe.
+ */
+export function isDay(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
+
+  const fecha = new Date(`${value}T00:00:00Z`)
+
+  return !Number.isNaN(fecha.getTime()) && fecha.toISOString().slice(0, 10) === value
+}
+
 /** S6 · Una solicitud está vencida cuando su fecha límite ya ha pasado. El mismo día, todavía no. */
 export function isOverdue(dueDate: DayString, today: DayString = todayInSpain()): boolean {
   return dueDate < today

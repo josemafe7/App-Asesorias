@@ -2,11 +2,13 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { after } from 'next/server'
 import { z } from 'zod'
 
 import { deleteDocument, getDocument, uploadDocument } from '@/data/documents'
 import { getDossier } from '@/data/dossiers'
 import { getRequest } from '@/data/requests'
+import { processDocument } from '@/lib/ai/process-document'
 import { requireProfile } from '@/lib/auth-guards'
 import { checkUpload, MAX_FILE_BYTES } from '@/lib/files'
 import type { FormState } from '@/lib/form'
@@ -93,6 +95,18 @@ export async function uploadDocumentAction(
     uploadedBy: profile.id,
   })
   if (!result.ok) return { error: result.message }
+
+  // I1 · El documento se manda a leer después de contestar: quien sube no se queda esperando a la IA.
+  // I5 · Si la lectura falla o tarda, el documento ya está guardado y se queda pendiente de revisión.
+  const documentId = result.id
+  after(async () => {
+    await processDocument({
+      documentId,
+      bytes,
+      mimeType: check.type,
+      userId: profile.id,
+    })
+  })
 
   revalidatePath(dossierPath(profile, dossier.id))
   redirect(`${dossierPath(profile, dossier.id)}?subido=1`)
