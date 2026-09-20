@@ -38,3 +38,28 @@ export function ActivePill({ isActive }: { isActive: boolean }) {
     </StatusPill>
   )
 }
+
+/** E3 · Un expediente está abierto o cerrado. */
+export function DossierPill({ status }: { status: 'open' | 'closed' }) {
+  return (
+    <StatusPill tone={status === 'open' ? 'success' : 'off'}>
+      {status === 'open' ? 'Abierto' : 'Cerrado'}
+    </StatusPill>
+  )
+}
+
+/** S3 · Una solicitud está pendiente, cumplida o cancelada; y una pendiente puede estar vencida (S6). */
+export function RequestPill({
+  status,
+  overdue = false,
+}: {
+  status: 'pending' | 'fulfilled' | 'cancelled'
+  overdue?: boolean
+}) {
+  if (status === 'fulfilled') return <StatusPill tone="success">Cumplida</StatusPill>
+  if (status === 'cancelled') return <StatusPill tone="off">Cancelada</StatusPill>
+
+  return (
+    <StatusPill tone={overdue ? 'urgent' : 'neutral'}>{overdue ? 'Vencida' : 'Pendiente'}</StatusPill>
+  )
+}

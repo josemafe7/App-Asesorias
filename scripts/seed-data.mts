@@ -113,6 +113,43 @@ export const SEED_USERS: SeedUser[] = [
     isActive: false,
   },
 ]
+export type SeedDossier = {
+  clientKey: string
+  year: number
+  quarter: number
+  status: 'open' | 'closed'
+  requests: { title: string; description?: string; dueInDays: number }[]
+}
+
+/**
+ * Expedientes de ejemplo. Las fechas límite se calculan al cargar el seed a partir de los días que
+ * faltan, para que en la demo haya siempre una solicitud vencida y otras por vencer.
+ */
+export const SEED_DOSSIERS: SeedDossier[] = [
+  {
+    clientKey: 'espiga',
+    year: 2026,
+    quarter: 1,
+    status: 'open',
+    requests: [
+      { title: 'Facturas de compras de enero', dueInDays: -5 },
+      {
+        title: 'Tickets de gasolina del trimestre',
+        description: 'Los del reparto, sueltos o en una carpeta',
+        dueInDays: 10,
+      },
+      { title: 'Factura del seguro del local', dueInDays: 20 },
+    ],
+  },
+  {
+    clientKey: 'moreno',
+    year: 2026,
+    quarter: 1,
+    status: 'open',
+    requests: [{ title: 'Facturas de recambios de febrero', dueInDays: 7 }],
+  },
+  { clientKey: 'azahar', year: 2025, quarter: 4, status: 'closed', requests: [] },
+]
 
 /**
  * La marca de los datos que crean las pruebas de Playwright.

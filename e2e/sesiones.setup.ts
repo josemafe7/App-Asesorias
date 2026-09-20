@@ -16,7 +16,7 @@ import { seedUser, signIn } from './utils'
 const CLAVES = ['admin', 'marta', 'javier', 'espiga-pablo', 'espiga-rosa']
 
 /** Las que además hablan con la base de datos de frente, sin pasar por la app. */
-const CON_CREDENCIAL = ['admin', 'marta', 'espiga-pablo']
+const CON_CREDENCIAL = ['admin', 'marta', 'javier', 'espiga-pablo']
 
 setup('guarda una sesión por cada usuario de prueba', async ({ browser }) => {
   fs.mkdirSync(CARPETA_SESIONES, { recursive: true })

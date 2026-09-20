@@ -14,7 +14,13 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 import type { Database } from '../src/lib/supabase/database.types.ts'
 import { borrarDatosDePruebas } from './limpiar-pruebas.mts'
-import { DEMO_PASSWORD, SEED_CLIENTS, SEED_USERS, type SeedUser } from './seed-data.mts'
+import {
+  DEMO_PASSWORD,
+  SEED_CLIENTS,
+  SEED_DOSSIERS,
+  SEED_USERS,
+  type SeedUser,
+} from './seed-data.mts'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SECRET_KEY = process.env.SUPABASE_SECRET_KEY
@@ -42,6 +48,13 @@ async function refuseIfRealData(): Promise<void> {
     console.error('El seed no se ejecuta donde hay datos reales. No se ha tocado nada.')
     process.exit(1)
   }
+}
+
+/** Una fecha límite a tantos días de hoy, como año-mes-día. */
+function enDias(dias: number): string {
+  const fecha = new Date()
+  fecha.setDate(fecha.getDate() + dias)
+  return fecha.toISOString().slice(0, 10)
 }
 
 async function upsertUser(user: SeedUser): Promise<string> {
@@ -127,6 +140,42 @@ async function main(): Promise<void> {
       { onConflict: 'id' },
     )
     if (error) throw new Error(`Perfil de ${user.email}: ${error.message}`)
+  }
+
+  // 5) Los expedientes de ejemplo y lo que se le pide a cada cliente en ellos.
+  for (const dossier of SEED_DOSSIERS) {
+    const { data, error } = await admin
+      .from('dossiers')
+      .upsert(
+        {
+          client_id: clientIds.get(dossier.clientKey)!,
+          year: dossier.year,
+          quarter: dossier.quarter,
+          status: dossier.status,
+        },
+        { onConflict: 'client_id,year,quarter' },
+      )
+      .select('id')
+      .single()
+    if (error || !data)
+      throw new Error(`Expediente ${dossier.clientKey}: ${error?.message}`)
+
+    // Se rehacen enteras para que dos seeds seguidos no dupliquen lo pedido.
+    const { error: borrado } = await admin
+      .from('document_requests')
+      .delete()
+      .eq('dossier_id', data.id)
+    if (borrado) throw new Error(`Solicitudes de ${dossier.clientKey}: ${borrado.message}`)
+
+    for (const request of dossier.requests) {
+      const { error: fallo } = await admin.from('document_requests').insert({
+        dossier_id: data.id,
+        title: request.title,
+        description: request.description ?? null,
+        due_date: enDias(request.dueInDays),
+      })
+      if (fallo) throw new Error(`Solicitud «${request.title}»: ${fallo.message}`)
+    }
   }
 
   console.log(`Listo: ${SEED_USERS.length} usuarios y ${SEED_CLIENTS.length} clientes de ejemplo.`)

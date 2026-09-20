@@ -285,6 +285,22 @@ test('un cliente no puede cambiar los datos de su propia empresa', async ({ requ
   expect(clients[0].legal_name).toBe('Panadería La Espiga SL')
 })
 
+// Un asesor alcanza los perfiles de los usuarios de SUS clientes, para saber con quién habla. Los de
+// los clientes de otro asesor, no.
+test('un asesor no ve los perfiles de los usuarios de otro asesor', async ({ request }) => {
+  const token = sessionToken(seedUser('javier').email)
+
+  const profiles = (await readTable(request, 'profiles', token)) as { email: string }[]
+  const correos = profiles.map((profile) => profile.email)
+
+  // La Espiga la lleva Marta: sus usuarios no son cosa de Javier.
+  expect(correos).not.toContain(seedUser('espiga-pablo').email)
+  expect(correos).not.toContain(seedUser('espiga-rosa').email)
+  expect(correos).not.toContain(seedUser('marta').email)
+  // El suyo sí.
+  expect(correos).toContain(seedUser('javier').email)
+})
+
 test('un asesor no puede crear perfiles ni cambiar el rol de nadie', async ({ request }) => {
   const token = sessionToken(seedUser('marta').email)
 

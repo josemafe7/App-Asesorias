@@ -58,6 +58,82 @@ export type Database = {
           },
         ]
       }
+      document_requests: {
+        Row: {
+          created_at: string
+          description: string | null
+          dossier_id: string
+          due_date: string
+          id: string
+          reminder_sent_at: string | null
+          status: Database["public"]["Enums"]["request_status"]
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          dossier_id: string
+          due_date: string
+          id?: string
+          reminder_sent_at?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          dossier_id?: string
+          due_date?: string
+          id?: string
+          reminder_sent_at?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_requests_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dossiers: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          quarter: number
+          status: Database["public"]["Enums"]["dossier_status"]
+          year: number
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          quarter: number
+          status?: Database["public"]["Enums"]["dossier_status"]
+          year: number
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          quarter?: number
+          status?: Database["public"]["Enums"]["dossier_status"]
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dossiers_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           client_id: string | null
@@ -104,6 +180,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      dossier_status: "open" | "closed"
+      request_status: "pending" | "fulfilled" | "cancelled"
       user_role: "admin" | "advisor" | "client"
     }
     CompositeTypes: {
@@ -232,6 +310,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      dossier_status: ["open", "closed"],
+      request_status: ["pending", "fulfilled", "cancelled"],
       user_role: ["admin", "advisor", "client"],
     },
   },
