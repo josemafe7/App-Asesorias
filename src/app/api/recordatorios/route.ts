@@ -5,7 +5,7 @@ import { todayInSpain } from '@/lib/dates'
 import { buildReminderEmail } from '@/lib/email/reminder'
 import { sendEmail } from '@/lib/email/send'
 import { env } from '@/lib/env'
-import { canSendReminder } from '@/lib/reminders'
+import { canSendReminder, deliverReminder } from '@/lib/reminders'
 
 /**
  * M1-M5 · El trabajo diario que recuerda lo que falta.
@@ -44,6 +44,7 @@ export async function POST(request: Request): Promise<Response> {
   const solicitudes = await listRequestsForDailyReminder(hoy)
 
   let enviados = 0
+  let fallidos = 0
 
   for (const solicitud of solicitudes) {
     // M3 y M4 · Una sola vez por solicitud, y nunca de una cumplida o cancelada (que ya no salen en la
@@ -60,16 +61,26 @@ export async function POST(request: Request): Promise<Response> {
       link: `${env.NEXT_PUBLIC_SITE_URL}/cliente`,
     })
 
-    for (const destinatario of solicitud.emails) {
-      await sendEmail(destinatario, email)
-    }
+    // M8 · Si un correo no sale, se sigue con los demás: con el resto de usuarios de esta empresa y con
+    // las solicitudes que quedan por recorrer.
+    const entrega = await deliverReminder(solicitud.emails, (destinatario) =>
+      sendEmail(destinatario, email),
+    )
 
-    await markReminderSentByJob(solicitud.requestId)
-    enviados += 1
+    // M3 y M8 · Solo se da por recordada si ha salido para alguien. Si no, mañana se vuelve a intentar.
+    if (entrega.sent > 0) {
+      await markReminderSentByJob(solicitud.requestId)
+      enviados += 1
+    } else {
+      fallidos += 1
+      console.error('[recordatorios] no ha salido el recordatorio de una solicitud', {
+        solicitud: solicitud.requestId,
+      })
+    }
   }
 
-  // Sin datos de nadie: solo cuántos han salido.
-  console.info(`[recordatorios] enviados ${enviados}`)
+  // Sin datos de nadie: solo cuántos han salido y cuántos no.
+  console.info(`[recordatorios] enviados ${enviados}, fallidos ${fallidos}`)
 
-  return Response.json({ enviados })
+  return Response.json({ enviados, fallidos })
 }

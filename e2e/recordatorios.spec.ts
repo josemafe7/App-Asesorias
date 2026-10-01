@@ -6,7 +6,7 @@ import { asignarAsesor, comoSesion, crearEmpresa, elegirOpcion } from './utils'
 /**
  * Los recordatorios por correo y la exportación a CSV.
  *
- * Reglas de docs/spec.md: M1, M3, M5, M6, M7, X1, X2, X3, X6. En las pruebas el correo no sale de
+ * Reglas de docs/spec.md: M1, M3, M5, M6, M7, M8, X1, X2, X3, X6. En las pruebas el correo no sale de
  * verdad: se escribe en la consola del servidor (docs/testing.md), así que lo que se comprueba es a
  * cuántas solicitudes les tocaba y que no se repiten.
  */
@@ -58,6 +58,30 @@ test.describe('lo que hace la asesora', () => {
     // M7 · El botón se apaga y dice cuándo se podrá volver a enviar.
     await expect(fila).toContainText(/Se podrá recordar el \d{2}\/\d{2}\/\d{4} a las \d{1,2}:\d{2}/)
     await expect(fila.getByRole('button', { name: 'Recordar' })).toBeHidden()
+  })
+
+  test('M8 · si el recordatorio no sale para nadie, la pantalla lo dice y no lo da por enviado', async ({
+    page,
+    browser,
+  }) => {
+    // Una empresa recién dada de alta no tiene todavía ningún usuario: no hay a quién mandárselo.
+    const admin = await comoSesion(browser, 'admin')
+    const empresa = await crearEmpresa(admin)
+    await asignarAsesor(admin, empresa.id, 'Marta Solís')
+    await admin.context().close()
+
+    await abrirTrimestre(page, empresa.id)
+    await page.getByLabel('Qué hace falta').fill('Facturas de compras de septiembre')
+    await page.getByLabel('Fecha límite').fill('2026-12-31')
+    await page.getByRole('button', { name: 'Crear solicitud' }).click()
+    await expect(page.getByText('Solicitud creada.')).toBeVisible()
+
+    await page.getByRole('button', { name: 'Recordar' }).click()
+
+    await expect(page.getByText('El recordatorio no ha salido.')).toBeVisible()
+    // No queda apuntado como enviado, así que se puede volver a intentar sin esperar a mañana.
+    await expect(page.getByText('Último recordatorio:')).toBeHidden()
+    await expect(page.getByRole('button', { name: 'Recordar' })).toBeVisible()
   })
 
   test('X1, X2 y X3 · el CSV lleva las columnas acordadas y solo lo aprobado', async ({

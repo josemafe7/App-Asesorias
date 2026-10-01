@@ -15,7 +15,7 @@ import { sendEmail } from '@/lib/email/send'
 import { env } from '@/lib/env'
 import { fieldErrorsFrom, type FormState } from '@/lib/form'
 import { checkRateLimit } from '@/lib/rate-limit'
-import { canSendReminder } from '@/lib/reminders'
+import { canSendReminder, deliverReminder } from '@/lib/reminders'
 import { dossierSchema } from '@/lib/validation/dossiers'
 import { buildRequestSchema } from '@/lib/validation/requests'
 
@@ -135,13 +135,22 @@ export async function sendReminderAction(formData: FormData): Promise<void> {
     link: `${env.NEXT_PUBLIC_SITE_URL}/cliente`,
   })
 
-  for (const destinatario of await clientUserEmails(dossier.clientId)) {
-    await sendEmail(destinatario, email)
+  const entrega = await deliverReminder(await clientUserEmails(dossier.clientId), (destinatario) =>
+    sendEmail(destinatario, email),
+  )
+
+  // M8 · Si no ha salido para nadie, no se da por recordada y se le dice a quien lo ha pedido, en vez de
+  // apuntar un recordatorio que nadie ha recibido.
+  if (entrega.sent === 0) {
+    console.error('[recordatorios] no ha salido el recordatorio manual', { solicitud: request.id })
+    redirect(`/asesor/expedientes/${request.dossierId}?sinrecordatorio=1`)
   }
 
   await markReminderSent(request.id)
 
   revalidatePath(`/asesor/expedientes/${request.dossierId}`)
+  // Se vuelve al expediente sin el aviso, por si venía de un intento que no había salido.
+  redirect(`/asesor/expedientes/${request.dossierId}`)
 }
 
 /** E3 · Cerrar el expediente al terminar, o volver a abrirlo. */

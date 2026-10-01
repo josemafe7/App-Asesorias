@@ -49,3 +49,30 @@ export function canSendReminder(
 
   return { ok: true }
 }
+
+export type ReminderDelivery = { sent: number; failed: number }
+
+/**
+ * M8 · Manda el recordatorio a cada usuario de la empresa sin pararse porque falle uno.
+ *
+ * El envío de verdad entra por parámetro: así esto se prueba sin correo, y quien lo llama decide con el
+ * resultado si la solicitud se da por recordada (cuando ha salido para alguien) o no.
+ */
+export async function deliverReminder(
+  recipients: string[],
+  send: (recipient: string) => Promise<void>,
+): Promise<ReminderDelivery> {
+  const resultado: ReminderDelivery = { sent: 0, failed: 0 }
+
+  for (const recipient of recipients) {
+    try {
+      await send(recipient)
+      resultado.sent += 1
+    } catch {
+      // El motivo ya lo deja apuntado quien envía, sin datos de nadie. Aquí solo se cuenta.
+      resultado.failed += 1
+    }
+  }
+
+  return resultado
+}

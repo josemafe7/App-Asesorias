@@ -143,6 +143,10 @@ Cada línea es una regla que se puede comprobar: «Cuando pasa esto, la app hace
   mismo correo que el automático. La pantalla muestra cuándo se envió el último.
 - M7 · Entre dos recordatorios de la misma solicitud tienen que pasar al menos 24 horas, los mande la app o
   el asesor. Si no han pasado, el botón está apagado y dice cuándo se podrá volver a enviar.
+- M8 · Si el correo de un recordatorio no sale, la app sigue con los demás. Una solicitud solo se da por
+  recordada cuando el correo ha salido para al menos un usuario de esa empresa: si no ha salido para
+  ninguno, el trabajo diario lo vuelve a intentar al día siguiente y, cuando lo manda el asesor, la
+  pantalla le dice que no ha salido.
 
 ### Exportación CSV
 
@@ -242,7 +246,7 @@ clientes.
       fecha límite de una solicitud puesta en ayer, el trabajo diario manda un correo y solo uno; el CSV
       descargado tiene las columnas acordadas y solo las filas aprobadas; y la asesoría entra por su dominio
       con HTTPS y hace el recorrido completo de «Cómo se comprueba que todo funciona».
-      (E1-E5, S1-S6, D1-D8, I1-I8, R1-R8, M1-M7, X1-X6)
+      (E1-E5, S1-S6, D1-D8, I1-I8, R1-R8, M1-M8, X1-X6)
 
       Ojo al publicar: hasta aquí las pruebas usan `next start`, que sirve la compilación normal, mientras
       que en el VPS corre la versión reducida para Docker. Al montar la imagen hay que copiarle los
@@ -253,7 +257,7 @@ clientes.
       - [x] 3b · Subida de documentos (D1-D8, y con ellos E4 y S4)
       - [x] 3c · Lectura automática con IA (I1-I8)
       - [x] 3d · Revisión y aprobación (R1-R8)
-      - [x] 3e · Recordatorios y exportación CSV (M1-M7, X1-X6)
+      - [x] 3e · Recordatorios y exportación CSV (M1-M8, X1-X6)
       - [ ] 3f · Publicación en el VPS
 
 ## Cómo se comprueba que todo funciona

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { canSendReminder, REMINDER_COOLDOWN_MS } from './reminders'
+import { canSendReminder, deliverReminder, REMINDER_COOLDOWN_MS } from './reminders'
 
 /**
  * A quién le toca un recordatorio y cuándo (M1, M3, M4, M6, M7).
@@ -76,5 +76,51 @@ describe('canSendReminder · el que manda el asesor a mano (M6, M7)', () => {
     const enviado = new Date(AHORA.getTime() - REMINDER_COOLDOWN_MS - 1000)
 
     expect(canSendReminder(solicitud({ reminderSentAt: enviado }), aMano).ok).toBe(true)
+  })
+})
+
+describe('deliverReminder · cuando un correo no sale (M8)', () => {
+  const PABLO = 'pablo@laespiga.es'
+  const ROSA = 'rosa@laespiga.es'
+
+  /** Un envío de mentira que falla con las direcciones que se le digan y apunta a quién lo ha intentado. */
+  function envio(fallan: string[] = []) {
+    const intentados: string[] = []
+
+    return {
+      intentados,
+      send: async (destinatario: string) => {
+        intentados.push(destinatario)
+        if (fallan.includes(destinatario)) throw new Error('No se ha podido enviar el correo.')
+      },
+    }
+  }
+
+  it('si todos salen, los cuenta todos', async () => {
+    const { send } = envio()
+
+    expect(await deliverReminder([PABLO, ROSA], send)).toEqual({ sent: 2, failed: 0 })
+  })
+
+  it('si uno falla, sigue con los demás en vez de pararse', async () => {
+    const { send, intentados } = envio([PABLO])
+
+    const resultado = await deliverReminder([PABLO, ROSA], send)
+
+    expect(resultado).toEqual({ sent: 1, failed: 1 })
+    // El fallo del primero no ha impedido intentarlo con la segunda.
+    expect(intentados).toEqual([PABLO, ROSA])
+  })
+
+  it('si fallan todos, no revienta: dice que no ha salido ninguno', async () => {
+    const { send } = envio([PABLO, ROSA])
+
+    expect(await deliverReminder([PABLO, ROSA], send)).toEqual({ sent: 0, failed: 2 })
+  })
+
+  it('sin nadie a quien avisar, no sale nada y tampoco falla nada', async () => {
+    const { send } = envio()
+
+    expect(await deliverReminder([], send)).toEqual({ sent: 0, failed: 0 })
   })
 })

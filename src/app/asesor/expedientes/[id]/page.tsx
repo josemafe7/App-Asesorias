@@ -31,6 +31,7 @@ const searchSchema = z.object({
   creada: z.literal('1').optional().catch(undefined),
   subido: z.literal('1').optional().catch(undefined),
   sincsv: z.literal('1').optional().catch(undefined),
+  sinrecordatorio: z.literal('1').optional().catch(undefined),
 })
 
 export default async function ExpedienteDelAsesorPage({
@@ -43,7 +44,7 @@ export default async function ExpedienteDelAsesorPage({
   const profile = await requireRole('admin', 'advisor')
 
   const { id } = await params
-  const { creada, subido, sincsv } = searchSchema.parse(await searchParams)
+  const { creada, subido, sincsv, sinrecordatorio } = searchSchema.parse(await searchParams)
 
   // R8 y C4 · Si el expediente no es de un cliente suyo, las políticas no lo devuelven: «no tienes
   // permiso», nunca el contenido.
@@ -96,6 +97,13 @@ export default async function ExpedienteDelAsesorPage({
 
       {creada ? <Notice>Solicitud creada. Tu cliente ya la ve en su panel.</Notice> : null}
       {subido ? <Notice>Documento subido.</Notice> : null}
+      {/* M8 · Si el recordatorio no ha salido, se dice: no se apunta como enviado. */}
+      {sinrecordatorio ? (
+        <p className="mt-4 rounded-md border border-urgent bg-card px-4 py-3 text-[15px] text-urgent">
+          El recordatorio no ha salido. Comprueba que la empresa tiene algún usuario activo e inténtalo
+          otra vez dentro de un rato.
+        </p>
+      ) : null}
       {/* X6 · Si no hay nada aprobado, no se descarga un archivo vacío: se explica. */}
       {sincsv ? (
         <p className="mt-4 rounded-md border border-urgent bg-card px-4 py-3 text-[15px] text-urgent">
