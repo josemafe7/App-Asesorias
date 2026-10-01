@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import { normalizeProposal, type RawProposal } from './proposal'
+import { REQUIRED_TO_APPROVE } from '@/lib/validation/document-data'
+
+import { normalizeProposal, pendingFieldsForReview, type RawProposal } from './proposal'
 
 /**
  * Lo que la IA propone, antes de guardarlo (I2, I3, I4, I6, I7).
@@ -93,6 +95,18 @@ describe('normalizeProposal', () => {
     const propuesta = normalizar({ supplier: 'x'.repeat(500) })
 
     expect(propuesta.fields.supplier?.length).toBeLessThanOrEqual(120)
+  })
+
+  it('I2 · cada campo sin leer queda marcado con el nombre que usa la pantalla de revisión', () => {
+    const propuesta = normalizeProposal(null, CATEGORIAS)
+    const marcados = pendingFieldsForReview(propuesta.pending)
+
+    // Los ocho, y con los mismos nombres que exige R3 para aprobar: si no coinciden, la pantalla deja
+    // campos vacíos sin su marca de «pendiente».
+    expect(marcados).toHaveLength(8)
+    for (const campo of REQUIRED_TO_APPROVE) {
+      expect(marcados, campo).toContain(campo)
+    }
   })
 
   it('I5 · si no llega nada, todo queda pendiente y no se rompe', () => {

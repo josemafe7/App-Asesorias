@@ -1,6 +1,6 @@
 import 'server-only'
 
-import type { Proposal, RawProposal } from '@/lib/ai/proposal'
+import { pendingFieldsForReview, type Proposal, type RawProposal } from '@/lib/ai/proposal'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 
@@ -150,7 +150,7 @@ export async function saveAiProposal(
       vat_amount: proposal.fields.vatAmount,
       total: proposal.fields.total,
       category_code: proposal.fields.category,
-      pending_fields: proposal.pending,
+      pending_fields: pendingFieldsForReview(proposal.pending),
       ai_proposal: raw,
       needs_review: proposal.needsReview,
       updated_at: new Date().toISOString(),

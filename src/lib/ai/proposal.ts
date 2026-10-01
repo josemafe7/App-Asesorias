@@ -96,3 +96,25 @@ export function normalizeProposal(raw: RawProposal | null, categories: string[])
 
   return { fields, pending, needsReview: !cuadran }
 }
+
+/**
+ * Cómo se llama cada campo en la pantalla de revisión y en los datos guardados.
+ *
+ * A la IA se le pide `date` y `category`; la app guarda y enseña `issueDate` y `categoryCode`. Si la
+ * lista de pendientes se guardara con los nombres de la IA, esos dos campos saldrían vacíos pero sin
+ * su marca de «pendiente» (I2).
+ */
+const NOMBRE_EN_LA_REVISION: Record<keyof ProposalFields, string> = {
+  date: 'issueDate',
+  supplier: 'supplier',
+  supplierTaxId: 'supplierTaxId',
+  taxBase: 'taxBase',
+  vatRate: 'vatRate',
+  vatAmount: 'vatAmount',
+  total: 'total',
+  category: 'categoryCode',
+}
+
+export function pendingFieldsForReview(pending: (keyof ProposalFields)[]): string[] {
+  return pending.map((campo) => NOMBRE_EN_LA_REVISION[campo])
+}
