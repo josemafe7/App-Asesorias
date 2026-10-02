@@ -66,6 +66,14 @@ enable_confirmations = true
 # src/lib/email/invitation.ts, que es el que se le dice a la persona invitada.
 otp_expiry = 86400
 
+# A6 · El correo de «he olvidado mi contraseña» lo manda Supabase, no la app. Su enlace tiene que llegar
+# a /auth/confirm con el testigo (`token_hash`), que es lo que la app sabe canjear: con el correo que
+# trae Supabase por defecto, el enlace acaba en «ya no vale». En el proyecto de la nube esta misma
+# plantilla se pega en su panel (docs/deployment.md).
+[auth.email.template.recovery]
+subject = "Pon una contraseña nueva en Carpeta Fiscal"
+content_path = "./supabase/templates/recovery.html"
+
 # Los correos que manda Supabase en local (el de «he olvidado mi contraseña») no salen a ningún sitio:
 # se quedan en este buzón de pruebas, en http://127.0.0.1:54324.
 [local_smtp]

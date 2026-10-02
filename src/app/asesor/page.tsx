@@ -31,8 +31,8 @@ export default async function AsesorPage() {
       <h1 className="text-[34px] font-semibold tracking-[-0.02em]">Panel del asesor</h1>
       <p className="mt-2 max-w-[640px] text-[15px] leading-relaxed text-muted-foreground">
         {esAdmin
-          ? 'Todos los clientes activos de la asesoría. Los expedientes y los documentos llegan en las fases 3 y 4.'
-          : 'Los clientes que tienes asignados. Sus expedientes y sus documentos llegan en las fases 3 y 4.'}
+          ? 'Todos los clientes activos de la asesoría.'
+          : 'Los clientes que tienes asignados.'}
       </p>
 
       <h2 className="mt-8 text-[22px] font-semibold tracking-[-0.01em]">

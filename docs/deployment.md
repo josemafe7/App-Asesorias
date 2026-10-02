@@ -72,9 +72,17 @@ Dos cosas pendientes antes de encender los correos:
 5. **Domains** → añade el dominio, puerto 3000, y activa **HTTPS** con Let's Encrypt. El registro DNS
    tiene que existir antes, o el certificado no se puede emitir.
 6. **Deploy**. Con la publicación automática activada, los siguientes los lanza cada subida a `main`.
-7. En Supabase → Authentication → URL Configuration, pon la dirección del dominio como **Site URL** y
-   añade `https://TU-DOMINIO/auth/confirm` a las **Redirect URLs**. Sin eso, el enlace de «he olvidado
-   mi contraseña», que lo envía Supabase, no vuelve a la app publicada.
+7. El correo de «he olvidado mi contraseña» (A6) no lo manda la app, lo manda Supabase. Para que
+   funcione en la app publicada hacen falta tres cosas en el panel de Supabase, en *Authentication*:
+   - **URL Configuration**: la dirección del dominio, con https, como **Site URL**. Es la que se pone
+     delante del enlace del correo.
+   - **Email Templates → Reset password**: pegar el contenido de `supabase/templates/recovery.html` y
+     poner el asunto que lleva `supabase/config.toml`. Con el correo que trae Supabase por defecto, el
+     enlace acaba en «ya no vale», porque no llega con el testigo que la app sabe canjear.
+   - **SMTP Settings**: activar un servidor de correo propio, con los datos de Resend (servidor
+     `smtp.resend.com`, puerto `465`, usuario `resend` y, como contraseña, la clave de Resend), y un
+     remitente del dominio verificado en Resend. Sin esto, Supabase solo entrega correos a las
+     direcciones del equipo del proyecto, y a dos por hora: a un usuario normal no le llega nada.
 
 8. **Límite de peticiones en el proxy** (`docs/security.md` · «Límites y errores»). En la aplicación →
    **Advanced** → **Traefik**, se define un límite por dirección IP y se le pone a la entrada segura:

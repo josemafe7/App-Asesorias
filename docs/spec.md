@@ -28,7 +28,8 @@ Cada línea es una regla que se puede comprobar: «Cuando pasa esto, la app hace
   no está activa.
 - A5 · Cuando el administrador crea un usuario, le llega un correo de invitación con un enlace para poner
   su contraseña. El enlace caduca.
-- A6 · Cualquiera puede pedir un correo para restablecer su contraseña desde la pantalla de acceso.
+- A6 · Cualquiera puede pedir un correo para restablecer su contraseña desde la pantalla de acceso. El
+  enlace de ese correo lleva a poner una contraseña nueva, y con ella se entra.
 - A7 · Si un usuario abre una dirección que no le corresponde por su rol, ve «no tienes permiso», no el
   contenido.
 - A8 · Tras varios intentos fallidos seguidos de inicio de sesión desde el mismo sitio, la app deja de
