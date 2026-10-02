@@ -164,3 +164,21 @@ export const E2E_TAX_ID_PREFIX = 'E2E'
 /** Los documentos que suben las pruebas llevan esta marca en el nombre del archivo. */
 export const E2E_FILE_PREFIX = 'E2E'
 export const E2E_EMAIL_DOMAIN = 'e2e.carpetafiscal.test'
+
+/**
+ * Si esa dirección es la del Supabase local, el que corre en Docker.
+ *
+ * El seed y la limpieza de las pruebas borran datos con la clave secreta, así que solo se ejecutan ahí:
+ * nunca en el Supabase de la nube, que es el de la app publicada
+ * (docs/decisions/0007-supabase-local-para-desarrollo.md).
+ */
+export function isLocalSupabase(url: string | undefined): boolean {
+  if (!url) return false
+
+  try {
+    const { hostname } = new URL(url)
+    return hostname === '127.0.0.1' || hostname === 'localhost'
+  } catch {
+    return false
+  }
+}

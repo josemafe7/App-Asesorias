@@ -1,12 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
 
-// Las pruebas de permisos hablan directamente con Supabase, así que necesitan sus claves públicas.
-// En un servidor de integración las variables ya vienen del entorno y no hay archivo que cargar.
-try {
-  process.loadEnvFile('.env.local')
-} catch {
-  // No hay .env.local: se usan las variables del entorno, si las hay.
-}
+// Las pruebas van siempre contra el Supabase local: `pnpm test:e2e` lo levanta y deja su dirección y sus
+// claves en el entorno (scripts/local.mts). Aquí no se carga `.env.local` a propósito, para que unas
+// pruebas lanzadas por otro camino se paren en vez de acabar en otro Supabase.
 
 const BASE_URL = process.env.E2E_BASE_URL ?? 'http://localhost:3000'
 

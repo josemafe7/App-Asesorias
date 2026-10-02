@@ -9,7 +9,9 @@ Carpeta Fiscal es una sola aplicación de Next.js que se publica en un VPS dentr
 No hay servidor de API aparte: las páginas se pintan en el servidor y los cambios de datos van por Server
 Actions.
 
-Los datos, los usuarios y los archivos están en Supabase. La app habla con Supabase con la clave
+Los datos, los usuarios y los archivos están en Supabase: el de la nube para la app publicada y, en
+local, el mismo Supabase dentro de Docker (`docs/decisions/0007-supabase-local-para-desarrollo.md`). La
+app es la misma en los dos sitios: solo cambian la dirección y las claves que recibe. La app habla con Supabase con la clave
 publicable, así que **todo lo que pide pasa por las reglas por filas de la base de datos**: si una política
 no deja ver un registro, no lo ve ni aunque el código se lo pida. La clave secreta, que se salta esas
 reglas, se usa en cuatro sitios contados: el seed, la limpieza de las pruebas, las acciones del
@@ -34,6 +36,7 @@ tramo 3e). Y en el tramo 3c entra OpenRouter, que lee los documentos subidos y p
 | Lectura de documentos | Propone fecha, proveedor, importes y categoría | OpenRouter (tramo 3c) |
 | Correo | Invitaciones y recordatorios | Resend (fase 2 y tramo 3e) |
 | Publicación | Imagen de Docker detrás de Traefik, con HTTPS | VPS de Hostinger con Dokploy (tramo 3f) |
+| Desarrollo en local | Base de datos, usuarios y archivos en el propio equipo | Supabase en Docker, con su CLI (fase 4) |
 
 ## Cómo se organiza el código
 
@@ -53,6 +56,9 @@ tramo 3e). Y en el tramo 3c entra OpenRouter, que lee los documentos subidos y p
 - `src/proxy.ts` · el proxy de Next.js. En la versión 16 se llama así, antes era `middleware`.
 - `supabase/migrations/` · cada cambio de la base de datos, en un archivo. La base se puede recrear entera
   desde aquí.
+- `supabase/config.toml` · el Supabase local: qué piezas se encienden y los ajustes de acceso.
+- `scripts/local.mts` · lo que hay delante de `pnpm dev`, `pnpm seed` y `pnpm test:e2e`: levanta el
+  Supabase local y le pasa su dirección y sus claves al comando, por encima de `.env.local`.
 - `scripts/seed.mts` y `scripts/seed-data.mts` · los datos de ejemplo. Los datos van aparte para que las
   pruebas puedan leerlos sin abrir ninguna conexión.
 

@@ -19,9 +19,11 @@ Cómo se crea el proyecto y cómo se escribe y se organiza el código para que s
    de `AGENTS.md`.
 5. Pon en `next.config.ts` la configuración de `docs/security.md` y, como la app se publica en un VPS dentro
    de una imagen de Docker, `output: 'standalone'`, que deja solo lo necesario para ejecutarla.
-6. Si los datos van en Supabase, dime cómo crear el proyecto y pregúntame cómo te conecto a él: con su
-   servidor MCP, con su CLI o de otra forma. Si no lo sé, recomiéndame la más sencilla con mi herramienta.
-   La conexión cumple `docs/security.md`, y las claves de `.env.local` las pongo yo.
+6. Si los datos van en Supabase, en local se usa el Supabase de Docker (`supabase/config.toml` y
+   `scripts/local.mts`), que no necesita cuenta ni claves. Para el proyecto de la nube, el de producción,
+   dime cómo crearlo y pregúntame cómo te conecto a él: con su servidor MCP, con su CLI o de otra forma.
+   Si no lo sé, recomiéndame la más sencilla con mi herramienta. La conexión cumple `docs/security.md`, y
+   las claves las pongo yo.
 
 ## Documentación de las librerías
 
@@ -55,10 +57,12 @@ Context7:
 - Componentes de servidor por defecto. `'use client'` solo en los que necesitan interacción, y lo más abajo
   posible en el árbol.
 - La base de datos cambia solo con migraciones: cada cambio es un archivo en `supabase/migrations/`, que se
-  sube a Git, y se aplica con la conexión que haya a Supabase. Nunca con SQL suelto ni a mano en el panel:
+  sube a Git. En local se aplica sola al arrancar; al proyecto de la nube, con la conexión que haya a
+  Supabase y como dice `docs/deployment.md`. Nunca con SQL suelto ni a mano en el panel:
   así la base de datos se puede volver a crear entera desde el repositorio. Sus tipos se generan, no se
   escriben a mano.
-- Los datos de ejemplo van en un seed dentro del repositorio, que se carga con `pnpm seed`: datos realistas
+- Los datos de ejemplo van en un seed dentro del repositorio, que `pnpm dev` carga solo la primera vez y
+  que se vuelve a cargar con `pnpm seed`: datos realistas
   del negocio y un usuario de prueba de cada tipo. Lo usan las pruebas, la demo y quien descargue el
   proyecto para probarlo. No se crea una segunda base de datos ni un modo de demostración aparte: la app
   es la misma, con datos de ejemplo.

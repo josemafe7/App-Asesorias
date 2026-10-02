@@ -33,8 +33,10 @@ Qué se prueba y cómo, para demostrar que el código funciona sin que las prueb
 - Vitest excluye `e2e/` en su configuración, porque por defecto recogería también los `.spec.ts` de
   Playwright.
 - Las pruebas no dependen unas de otras ni del orden en que se ejecutan.
-- Datos inventados y usuarios de prueba: los del seed (ver `docs/conventions.md`). Las pruebas nunca se
-  ejecutan contra una base de datos con datos reales: si la del proyecto ya los tiene, antes se separan
-  desarrollo y producción, como dice `docs/security.md`.
+- Datos inventados y usuarios de prueba: los del seed (ver `docs/conventions.md`). Las pruebas corren
+  siempre contra el Supabase local de Docker: `pnpm test:e2e` lo levanta y le pasa sus claves. Hace
+  falta Docker abierto. Hay dos seguros para que no acaben en el proyecto de la nube: Playwright no
+  carga `.env.local`, y el seed y la limpieza se paran si la dirección no es la local. Antes de lanzarlas
+  no debe haber otra app en el puerto 3000, porque Playwright la reutilizaría.
 - Los servicios de pago (IA, emails, pagos) se simulan: las pruebas no los llaman de verdad.
 - Cuando el proyecto esté en GitHub, se propone ejecutar las pruebas automáticamente en cada subida.

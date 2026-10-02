@@ -22,8 +22,8 @@ const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 
 test.beforeAll(() => {
   // Si faltan, es mejor que la prueba falle a que se salte en silencio y parezca que todo está bien.
-  expect(SUPABASE_URL, 'falta NEXT_PUBLIC_SUPABASE_URL en .env.local').toBeTruthy()
-  expect(PUBLISHABLE_KEY, 'falta NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY en .env.local').toBeTruthy()
+  expect(SUPABASE_URL, 'falta la dirección del Supabase local: usa `pnpm test:e2e`').toBeTruthy()
+  expect(PUBLISHABLE_KEY, 'falta la clave del Supabase local: usa `pnpm test:e2e`').toBeTruthy()
 })
 
 /** Pide una tabla entera. Sin credencial, como alguien que no ha entrado. */

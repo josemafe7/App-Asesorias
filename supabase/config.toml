@@ -1,0 +1,71 @@
+# El Supabase que se levanta en local, dentro de Docker, para desarrollar y para las pruebas
+# (docs/decisions/0007-supabase-local-para-desarrollo.md). La app publicada no usa nada de esto: va
+# contra el Supabase de la nube.
+#
+# Solo aparece lo que se aparta de los valores por defecto. La referencia completa:
+# https://supabase.com/docs/guides/local-development/cli/config
+
+# Distingue este Supabase de otros que haya en el mismo equipo. No depende del nombre de la carpeta.
+project_id = "carpeta-fiscal"
+
+[db]
+# La misma versión de PostgreSQL que el proyecto de la nube.
+major_version = 17
+
+# Los datos de ejemplo no van en un archivo SQL: los carga `pnpm seed`, que crea también las cuentas.
+[db.seed]
+enabled = false
+
+# --- Piezas apagadas -----------------------------------------------------------------------------
+# La app usa cuatro piezas de Supabase: la base de datos, el acceso, la API de datos y los archivos.
+# Las demás se quedan apagadas para gastar la menor memoria posible.
+
+# El panel para ver las tablas en el navegador (http://127.0.0.1:54323). Quien quiera mirar los datos
+# puede encenderlo aquí y volver a arrancar.
+[studio]
+enabled = false
+
+# Avisos al instante entre navegadores: la app no los usa.
+[realtime]
+enabled = false
+
+# Código que corre dentro de Supabase: la app no tiene.
+[edge_runtime]
+enabled = false
+
+# Guardar y consultar los registros: es la pieza que más pesa.
+[analytics]
+enabled = false
+
+[db.pooler]
+enabled = false
+
+[storage.s3_protocol]
+enabled = false
+
+[storage.vector]
+enabled = false
+
+# --- Acceso --------------------------------------------------------------------------------------
+# Los mismos ajustes que el proyecto de la nube lleva puestos en su panel (docs/deployment.md).
+
+[auth]
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/**", "http://127.0.0.1:3000/**"]
+# A2 · No hay registro público: las cuentas las crea el administrador.
+enable_signup = false
+minimum_password_length = 10
+password_requirements = "lower_upper_letters_digits_symbols"
+
+[auth.email]
+# Esto no es el registro público (eso es `enable_signup` de arriba): es entrar con correo y contraseña.
+enable_signup = true
+enable_confirmations = true
+# A5 · Los enlaces de invitación duran 24 horas: el mismo número que INVITATION_EXPIRY_HOURS en
+# src/lib/email/invitation.ts, que es el que se le dice a la persona invitada.
+otp_expiry = 86400
+
+# Los correos que manda Supabase en local (el de «he olvidado mi contraseña») no salen a ningún sitio:
+# se quedan en este buzón de pruebas, en http://127.0.0.1:54324.
+[local_smtp]
+enabled = true

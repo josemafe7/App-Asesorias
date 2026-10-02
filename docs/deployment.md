@@ -7,9 +7,9 @@ Antes de la primera publicación se repasa «Antes de publicar» de `docs/securi
 
 ## Cómo está publicada hoy
 
-Publicada por primera vez el 2026-10-02, como **demo con los datos de ejemplo**: usa el mismo proyecto de
-Supabase que desarrollo. El día que entren datos reales hay que separar los proyectos, como dice el
-apartado 5.
+Publicada por primera vez el 2026-10-02, como **demo con los datos de ejemplo**. Usa el proyecto de
+Supabase de la nube, que desde la fase 4 es solo suyo: en local se trabaja contra el Supabase de Docker.
+El día que entren datos reales, producción pasa a un proyecto nuevo y limpio, como dice el apartado 5.
 
 | Qué | Dónde |
 |---|---|
@@ -114,9 +114,14 @@ sesión, como al acceso y a `/auth`: quien la llama es el servidor, no una perso
 ## 5. La base de datos
 
 - Las tablas y sus reglas se crean con las migraciones de `supabase/migrations/`, en orden. Un cambio de
-  base de datos se aplica **antes** de publicar la versión que lo necesita.
-- Con datos reales, el proyecto de Supabase de producción es uno nuevo y limpio, distinto del de
-  desarrollo (`docs/security.md` · «Datos»), con copias de seguridad activadas.
+  base de datos se prueba primero en local (el Supabase de Docker lo aplica al arrancar o con
+  `pnpm exec supabase db reset`) y se aplica al proyecto de la nube **antes** de publicar la versión que
+  lo necesita.
+- Los ajustes de acceso del proyecto de la nube (registro cerrado, contraseñas de 10 caracteres con
+  minúscula, mayúscula, número y símbolo, confirmación por correo y enlaces de 24 horas) se ponen en su
+  panel, en *Authentication*, y tienen que coincidir con los de `supabase/config.toml`.
+- Con datos reales, el proyecto de Supabase de producción es uno nuevo y limpio, sin los usuarios de
+  ejemplo (`docs/security.md` · «Datos»), con copias de seguridad activadas.
 - Los usuarios de ejemplo (`pnpm seed`) no existen en producción: el primer administrador se crea a mano
   desde el panel de Supabase y se le pone su perfil con rol `admin`.
 

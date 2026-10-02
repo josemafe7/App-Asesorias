@@ -16,8 +16,11 @@ silencio.
   diario de los recordatorios (`src/data/reminders.ts`), que lo lanza el programador de tareas del
   servidor. En los dos primeros casos, siempre después de comprobar que quien lo pide es administrador.
   Los datos de la app se leen y se escriben con la clave publicable, para que las políticas sigan mandando.
-- Cuando hay dos proyectos de Supabase, cada uno tiene sus claves: `.env.local` lleva las de desarrollo, y
-  las de producción solo están en las variables de entorno de la aplicación en el panel de Dokploy.
+- Las claves de producción solo están en las variables de entorno de la aplicación en el panel de
+  Dokploy. En local no hay claves que guardar: las del Supabase de Docker son las mismas en todos los
+  equipos, no son un secreto, y `scripts/local.mts` se las pasa a la app en memoria. En `.env.local` solo
+  va lo opcional (IA, correo, recordatorios), nunca las claves de Supabase: si estuvieran ahí, un
+  `pnpm build` lanzado a mano compilaría contra ese Supabase.
 - Si una clave se filtra (en un commit, una captura o un chat), se revoca y se crea otra. Borrarla del
   código no basta: sigue en el historial de Git.
 
@@ -43,11 +46,21 @@ silencio.
   cada política da el acceso mínimo.
 - Los archivos subidos van a buckets privados de Supabase Storage, con políticas. Públicos, solo los que
   deben verse sin iniciar sesión.
-- Mientras se construye y no hay datos reales, basta un proyecto de Supabase. Antes de meter datos reales se
-  separan: producción es un proyecto nuevo y limpio, creado desde las migraciones, y el que se usó para
-  construir se queda para desarrollo y pruebas (comprueba cuántos proyectos admite el plan). Desde entonces
-  el agente trabaja y prueba en el de desarrollo, y al de producción solo se conecta en modo de solo
-  lectura, salvo para aplicar una migración ya probada, con permiso y con una copia de seguridad reciente.
+- Desarrollo y producción están separados: en local se trabaja y se prueba contra el Supabase de Docker
+  (`docs/decisions/0007-supabase-local-para-desarrollo.md`), y el proyecto de la nube es solo de la app
+  publicada. El agente trabaja y prueba en el local, y al de la nube solo se conecta en modo de solo
+  lectura, salvo para aplicar una migración ya probada en local, con permiso y, si hay datos reales, con
+  una copia de seguridad reciente.
+- El seed y la limpieza de las pruebas borran datos con la clave secreta, así que se niegan a ejecutarse
+  si la dirección que reciben no es la del Supabase local (`isLocalSupabase`, en `scripts/seed-data.mts`).
+  Las pruebas no cargan `.env.local`: lanzadas por otro camino que no sea `pnpm test:e2e`, se paran.
+- En el Supabase local solo van datos de ejemplo. Sus claves son públicas y Docker publica sus puertos
+  (54321, 54322 y 54324) en todas las conexiones de red del equipo: lo que impide que otro equipo de la
+  misma red entre es el cortafuegos del sistema, que por defecto lo bloquea. La CLI de Supabase no deja
+  limitarlo al propio equipo. En una red que no es de confianza, se para con `pnpm db:stop` al terminar.
+- El proyecto de la nube nació como el de desarrollo y hoy sirve una demo con datos de ejemplo. Antes de
+  meter datos reales, producción pasa a un proyecto nuevo y limpio, creado desde las migraciones y sin
+  usuarios de prueba.
 - Las copias de la base de datos con datos reales no se guardan en el proyecto. Con datos reales hacen falta
   copias de seguridad: el plan gratuito de Supabase no las hace.
 

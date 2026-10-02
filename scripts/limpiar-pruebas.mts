@@ -5,13 +5,18 @@
  * Lo usan dos sitios: las propias pruebas (antes de empezar y al terminar) y el seed, para que una
  * prueba cortada por la mitad no deje nada por medio.
  *
- * Usa la clave secreta porque borrar una cuenta solo se puede hacer con ella. Nunca se ejecuta contra
- * datos reales: solo toca lo que lleva la marca de prueba.
+ * Usa la clave secreta porque borrar una cuenta solo se puede hacer con ella. Solo se ejecuta contra el
+ * Supabase local, y aun ahí solo toca lo que lleva la marca de prueba.
  */
 
 import { createClient } from '@supabase/supabase-js'
 
-import { E2E_EMAIL_DOMAIN, E2E_FILE_PREFIX, E2E_TAX_ID_PREFIX } from './seed-data.mts'
+import {
+  E2E_EMAIL_DOMAIN,
+  E2E_FILE_PREFIX,
+  E2E_TAX_ID_PREFIX,
+  isLocalSupabase,
+} from './seed-data.mts'
 
 export async function borrarDatosDePruebas(): Promise<void> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -19,7 +24,15 @@ export async function borrarDatosDePruebas(): Promise<void> {
 
   if (!url || !secretKey) {
     throw new Error(
-      'Faltan NEXT_PUBLIC_SUPABASE_URL o SUPABASE_SECRET_KEY: no se pueden borrar los datos de prueba.',
+      'Faltan la dirección o la clave del Supabase local: lanza las pruebas con `pnpm test:e2e`.',
+    )
+  }
+
+  if (!isLocalSupabase(url)) {
+    throw new Error(
+      'ALTO. El seed y las pruebas solo se ejecutan contra el Supabase local, y la dirección que han ' +
+        'recibido no lo es. Lánzalos con `pnpm seed` o `pnpm test:e2e`, que levantan el local y le ' +
+        'pasan sus claves. No se ha tocado nada.',
     )
   }
 

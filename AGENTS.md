@@ -102,13 +102,14 @@ cambia por su equivalente, nunca se quita.
 - Framework: [Next.js], que se crea como dice «Crear el proyecto» en `docs/conventions.md`
 - Lenguaje: [TypeScript]
 - Diseño: [Tailwind CSS + shadcn/ui]
-- Datos, usuarios y archivos: [Supabase gestionado, en una región de la Unión Europea]
+- Datos, usuarios y archivos: [Supabase: en producción, gestionado en una región de la Unión Europea; en
+  local, el mismo Supabase en Docker con su CLI]
 - IA, si la app la usa: [AI SDK sobre OpenRouter, con el modelo de la variable OPENROUTER_MODEL]
 - Correo: [Resend]
 - Pruebas: [Vitest] para la lógica y [Playwright] para recorrer la app como un usuario
 - Despliegue: [VPS de Hostinger con Dokploy], detrás de su proxy Traefik y con HTTPS
 - Documentación de las librerías: [Context7]
-- Base: [Node.js (LTS) con pnpm, Git y GitHub]
+- Base: [Node.js (LTS) con pnpm, Git y GitHub, y Docker para el Supabase local]
 
 Usa información actualizada a la fecha de hoy. Lo que sabes, y lo que dicen este archivo y `docs/`, puede
 haber cambiado: antes de aplicar una versión, un comando, una opción, un límite o un precio, compruébalo y,
@@ -120,11 +121,13 @@ si ha cambiado, avísame y usa lo actual. Instala siempre la última versión es
 
 Estos comandos los prepara la fase 1. Si alguno cambia, actualiza esta sección.
 
-- `pnpm dev`: arranca la app en local.
+- `pnpm dev`: levanta el Supabase local (con Docker abierto), carga los datos de ejemplo la primera vez y
+  arranca la app.
 - `pnpm check`: lint, tipos y pruebas de Vitest, de una vez y en segundos. Es lo que se pasa al construir.
 - `pnpm test:e2e`: compila la app como en producción y la recorre con Playwright. Se pasa al cerrar la
   fase.
 - `pnpm seed`: carga los datos de ejemplo y los usuarios de prueba. Nunca donde hay datos reales.
+- `pnpm db:stop`: para el Supabase local. Sus datos se conservan.
 
 ## Documentación
 

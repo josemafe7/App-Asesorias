@@ -7,7 +7,8 @@
  * NUNCA se ejecuta donde hay datos reales. El guardián de más abajo lo comprueba solo: si encuentra un
  * cliente que no es de este archivo, se para sin tocar nada.
  *
- * Se ejecuta con `pnpm seed`, que le pasa las variables de .env.local.
+ * Se ejecuta con `pnpm seed`, que levanta el Supabase local y le pasa su dirección y su clave
+ * (scripts/local.mts). Solo corre ahí: la limpieza con la que empieza se niega a tocar otro Supabase.
  */
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
@@ -26,7 +27,7 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SECRET_KEY = process.env.SUPABASE_SECRET_KEY
 
 if (!SUPABASE_URL || !SECRET_KEY) {
-  console.error('Faltan NEXT_PUBLIC_SUPABASE_URL o SUPABASE_SECRET_KEY en .env.local')
+  console.error('Faltan la dirección o la clave del Supabase local: ejecútalo con `pnpm seed`.')
   process.exit(1)
 }
 

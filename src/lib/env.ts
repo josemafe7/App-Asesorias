@@ -32,8 +32,8 @@ if (!parsed.success) {
 
   throw new Error(
     `Falta configuración para arrancar Carpeta Fiscal:\n${faltan}\n\n` +
-      'Copia .env.example a .env.local y rellena los valores. En producción, ponlos en las variables de ' +
-      'entorno de la aplicación en el panel de Dokploy.',
+      'En local, arranca con `pnpm dev`, que levanta el Supabase local y pone estos valores. En ' +
+      'producción, ponlos en las variables de entorno de la aplicación en el panel de Dokploy.',
   )
 }
 

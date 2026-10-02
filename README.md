@@ -5,45 +5,44 @@ los revisan, los aprueban y los exportan ya validados.
 
 ## Cómo arrancarlo
 
-Hace falta tener instalado **Node.js 24 o superior**, **pnpm** y **Git**.
+Hace falta tener instalado **Node.js 24 o superior**, **pnpm**, **Git** y **Docker Desktop**. No hace falta
+ninguna cuenta ni ninguna clave.
 
-1. Descarga el proyecto y entra en su carpeta.
-2. Instala las dependencias:
+1. Abre Docker Desktop y espera a que termine de arrancar.
+2. Descarga el proyecto, entra en su carpeta e instala las dependencias:
    ```
    pnpm install
    ```
-3. Crea un proyecto en [Supabase](https://supabase.com), **en una región de la Unión Europea**.
-4. Copia `.env.example` a `.env.local` y rellena los cuatro primeros valores. Los tres de Supabase están en
-   su panel, en *Project Settings › Data API*. `NEXT_PUBLIC_SITE_URL` en local es `http://localhost:3000`.
-   El resto se pueden dejar en blanco mientras se construye:
-   - correo (`RESEND_API_KEY`, `EMAIL_FROM`): sin ellos, los correos se escriben en la consola del
-     servidor en vez de enviarse, con su enlace, y así se prueba la invitación sin cuenta de correo;
-   - IA (`OPENROUTER_API_KEY`, `OPENROUTER_MODEL`): sin ellos, los documentos se suben igual y se
-     quedan pendientes de revisión con los campos vacíos, para rellenarlos a mano;
-   - recordatorios (`CRON_SECRET`): solo hace falta para probar el trabajo diario.
-5. Aplica las migraciones de `supabase/migrations/`, por orden de nombre, en el editor SQL de Supabase.
-6. En el panel de Supabase, en *Authentication*:
-   - desactiva el registro de usuarios nuevos: las cuentas las crea el administrador;
-   - deja activada la confirmación por correo;
-   - pon la longitud mínima de contraseña en 10 caracteres, y exige minúscula, mayúscula, número y
-     símbolo;
-   - añade `http://localhost:3000/**` a las direcciones de redirección permitidas;
-   - mira en *Emails* cuánto duran los enlaces de invitación (*Email OTP Expiration*). Si no son 24 horas,
-     cambia `INVITATION_EXPIRY_HOURS` en `src/lib/email/invitation.ts`, porque ese número es el que se le
-     dice a la persona invitada.
-7. Carga los datos de ejemplo:
-   ```
-   pnpm seed
-   ```
-8. Arranca la app:
+3. Arranca la app:
    ```
    pnpm dev
    ```
 
-En `http://localhost:3000`.
+En `http://localhost:3000`, con los usuarios de «Cómo probarla».
 
-> El seed se niega a ejecutarse si encuentra clientes que no son de ejemplo. Nunca lo lances contra una
-> base de datos con datos reales.
+Ese último comando levanta en tu equipo un Supabase propio dentro de Docker (la base de datos, las
+cuentas y los archivos), crea las tablas, carga los datos de ejemplo la primera vez y arranca la app. La
+primera vez descarga unos 3,5 GB y tarda unos minutos; después, unos segundos. En marcha ocupa alrededor
+de medio giga de memoria, porque solo se encienden las piezas que la app usa (`supabase/config.toml`).
+
+Todo lo que hagas en local se queda en tu equipo: nada toca el Supabase de la app publicada. Usa el
+Supabase local solo con datos de ejemplo: sus claves son las mismas en todos los equipos.
+
+- **Para parar el Supabase local:** `pnpm db:stop`. Los datos se conservan para la próxima vez.
+- **Para empezar de cero:** `pnpm exec supabase db reset` borra la base de datos local y la vuelve a
+  crear; el siguiente `pnpm dev` carga otra vez los datos de ejemplo.
+- **Para ver los correos que manda Supabase** (el de «he olvidado mi contraseña»):
+  `http://127.0.0.1:54324`, un buzón de pruebas. No salen de tu equipo.
+
+Lo que es opcional va en un archivo `.env.local`, copiando de `.env.example` solo lo que necesites:
+
+- IA (`OPENROUTER_API_KEY`, `OPENROUTER_MODEL`): sin ellos, los documentos se suben igual y se quedan
+  pendientes de revisión con los campos vacíos, para rellenarlos a mano;
+- correo (`RESEND_API_KEY`, `EMAIL_FROM`): sin ellos, los correos de la app (invitaciones y
+  recordatorios) se escriben en la consola del servidor en vez de enviarse, con su enlace;
+- recordatorios (`CRON_SECRET`): solo hace falta para probar el trabajo diario.
+
+> El seed se niega a ejecutarse si encuentra clientes que no son de ejemplo.
 
 ## Cómo probarla
 
@@ -80,12 +79,13 @@ también los limpia.
 
 | Comando | Qué hace |
 |---|---|
-| `pnpm dev` | Arranca la app en local |
+| `pnpm dev` | Levanta el Supabase local y arranca la app |
 | `pnpm check` | Revisa el código y los tipos y pasa las pruebas de lógica (Vitest), de una vez |
 | `pnpm lint`, `pnpm typecheck`, `pnpm test` | Cada una de esas tres por separado |
-| `pnpm test:e2e` | Pruebas que recorren la app como un usuario (Playwright) |
+| `pnpm test:e2e` | Pruebas que recorren la app como un usuario (Playwright), contra el Supabase local |
 | `pnpm build` | Compila como en producción |
-| `pnpm seed` | Carga los datos de ejemplo |
+| `pnpm seed` | Vuelve a cargar los datos de ejemplo en el Supabase local |
+| `pnpm db:stop` | Para el Supabase local |
 
 La primera vez que uses Playwright: `pnpm exec playwright install chromium`.
 
