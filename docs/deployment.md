@@ -17,16 +17,24 @@ El día que entren datos reales, producción pasa a un proyecto nuevo y limpio, 
 | Panel | Dokploy → «Proyecto Asesorías» → entorno `production` → aplicación `carpeta-fiscal` |
 | Código | GitHub `josemafe7/App-Asesorias`, rama `main`, con el `Dockerfile` del repositorio |
 | Publicación | **Automática**: cada subida a `main` construye y publica sola. Subir a GitHub es publicar |
+| Correo | Resend, plan gratuito, con el dominio `avisos.dominia.site` verificado (región de la UE). Remitente: `Carpeta Fiscal <no-responder@avisos.dominia.site>` |
 | Tarea diaria | Schedule «Recordatorios diarios», a las 8:00 de `Europe/Madrid`. **Creada pero apagada**: ver abajo |
 
-Dos cosas pendientes antes de encender los correos:
+El correo funciona desde el 2026-10-02, probado en la app publicada: la invitación, que la envía la app
+con `RESEND_API_KEY`, y «he olvidado mi contraseña», que lo envía Supabase con Resend como servidor de
+correo (apartado 3, paso 7).
 
-- Faltan `RESEND_API_KEY` y `EMAIL_FROM` en las variables de la aplicación. Sin ellas no sale ningún
-  correo.
-- Los usuarios de ejemplo tienen correos de dominios que existen de verdad (`laespiga.es`,
-  `talleresmoreno.es`...). Con Resend configurado, los recordatorios y las invitaciones llegarían a
-  desconocidos. Por eso la tarea diaria está apagada: se enciende cuando esos correos sean de un dominio
-  reservado para ejemplos o propios.
+Dos cosas que hay que saber de esta demo:
+
+- **Está abierta a propósito.** Las contraseñas de los usuarios de ejemplo son las del `README.md`, que es
+  público, así que cualquiera puede entrar y enviar correos de verdad desde este dominio o gastar IA, hasta
+  los topes por hora de la app (20 invitaciones por administrador, 60 recordatorios a mano por asesor, 30
+  lecturas con IA por persona). Decisión de Josema, 2026-10-02, para que los alumnos puedan probarla sin
+  instalar nada. Si se abusa de ella, se cambian esas contraseñas solo en producción o se quita
+  `RESEND_API_KEY`.
+- **La tarea diaria está apagada.** Los usuarios de ejemplo tienen correos de dominios que existen de
+  verdad (`laespiga.es`, `talleresmoreno.es`...), y encendida les mandaría recordatorios a desconocidos.
+  Con un cliente real no hay usuarios de ejemplo y se enciende: Dokploy → la aplicación → Schedules.
 
 ## Lo que hace falta tener
 

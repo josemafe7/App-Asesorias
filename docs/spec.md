@@ -262,9 +262,12 @@ clientes.
       - [x] 3f · Publicación en el VPS
 
       Publicada el 2026-10-02 en `https://asesorias.dominia.site`. `pnpm test:e2e` pasa entero desde la
-      fase 4, contra el Supabase local. Para dar la fase por cerrada falta: poner la clave de Resend y
-      cambiar los correos de ejemplo por unos que no sean de terceros, encender la tarea diaria y hacer
-      por el dominio el recorrido de «Cómo se comprueba que todo funciona».
+      fase 4, contra el Supabase local. El correo funciona en la app publicada desde ese mismo día, con
+      Resend: probadas la invitación (A5) y «he olvidado mi contraseña» (A6). Para dar la fase por
+      cerrada falta: hacer por el dominio el recorrido completo de «Cómo se comprueba que todo
+      funciona», y decidir qué se hace con los correos de los usuarios de ejemplo, que son de dominios
+      que existen: mientras sigan así, la tarea diaria de la demo se queda apagada
+      (`docs/deployment.md` · «Cómo está publicada hoy»).
 
 - [x] Fase 4 · En local, siempre con Supabase en Docker — se comprueba: con Docker abierto y sin ninguna
       cuenta ni clave, `pnpm dev` levanta el Supabase local con las piezas mínimas, crea las tablas, carga
