@@ -258,7 +258,12 @@ clientes.
       - [x] 3c · Lectura automática con IA (I1-I8)
       - [x] 3d · Revisión y aprobación (R1-R8)
       - [x] 3e · Recordatorios y exportación CSV (M1-M8, X1-X6)
-      - [ ] 3f · Publicación en el VPS
+      - [x] 3f · Publicación en el VPS
+
+      Publicada el 2026-10-02 en `https://asesorias.dominia.site`. Para dar la fase por cerrada falta:
+      pasar `pnpm test:e2e` (el seed se para porque hay un cliente que no es de ejemplo), poner la clave
+      de Resend y cambiar los correos de ejemplo por unos que no sean de terceros, encender la tarea
+      diaria y hacer por el dominio el recorrido de «Cómo se comprueba que todo funciona».
 
 ## Cómo se comprueba que todo funciona
 

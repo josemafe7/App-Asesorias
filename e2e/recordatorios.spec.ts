@@ -37,6 +37,20 @@ test.describe('el trabajo diario', () => {
   })
 })
 
+// Así es como lo llama de verdad el programador de tareas del servidor: sin haber iniciado sesión. Con
+// sesión, el fallo de que el proxy lo desviara a la pantalla de acceso no se veía.
+test.describe('el trabajo diario, sin sesión', () => {
+  test.use({ storageState: { cookies: [], origins: [] } })
+
+  test('M5 · sin el secreto responde que no está permitido, no la pantalla de acceso', async ({
+    request,
+  }) => {
+    const respuesta = await request.post('/api/recordatorios', { maxRedirects: 0 })
+
+    expect(respuesta.status()).toBe(401)
+  })
+})
+
 test.describe('lo que hace la asesora', () => {
   test.use({ storageState: rutaSesion('marta') })
 

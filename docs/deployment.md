@@ -5,6 +5,29 @@ vez hay que preparar las cuentas; a partir de ahí, publicar es un botón.
 
 Antes de la primera publicación se repasa «Antes de publicar» de `docs/security.md`.
 
+## Cómo está publicada hoy
+
+Publicada por primera vez el 2026-10-02, como **demo con los datos de ejemplo**: usa el mismo proyecto de
+Supabase que desarrollo. El día que entren datos reales hay que separar los proyectos, como dice el
+apartado 5.
+
+| Qué | Dónde |
+|---|---|
+| Dirección | `https://asesorias.dominia.site` (registro A hacia la IP del VPS) |
+| Panel | Dokploy → «Proyecto Asesorías» → entorno `production` → aplicación `carpeta-fiscal` |
+| Código | GitHub `josemafe7/App-Asesorias`, rama `main`, con el `Dockerfile` del repositorio |
+| Publicación | **Automática**: cada subida a `main` construye y publica sola. Subir a GitHub es publicar |
+| Tarea diaria | Schedule «Recordatorios diarios», a las 8:00 de `Europe/Madrid`. **Creada pero apagada**: ver abajo |
+
+Dos cosas pendientes antes de encender los correos:
+
+- Faltan `RESEND_API_KEY` y `EMAIL_FROM` en las variables de la aplicación. Sin ellas no sale ningún
+  correo.
+- Los usuarios de ejemplo tienen correos de dominios que existen de verdad (`laespiga.es`,
+  `talleresmoreno.es`...). Con Resend configurado, los recordatorios y las invitaciones llegarían a
+  desconocidos. Por eso la tarea diaria está apagada: se enciende cuando esos correos sean de un dominio
+  reservado para ejemplos o propios.
+
 ## Lo que hace falta tener
 
 | Qué | Para qué | Dónde se consigue |
@@ -45,18 +68,48 @@ Antes de la primera publicación se repasa «Antes de publicar» de `docs/securi
    - `OPENROUTER_API_KEY` y `OPENROUTER_MODEL`
    - `CRON_SECRET`
    Nunca dentro de la imagen ni en el repositorio (`docs/security.md` · «Claves»).
-5. **Domains** → añade el dominio, puerto 3000, y activa **HTTPS** con Let's Encrypt.
-6. **Deploy**.
+   Sin `RESEND_API_KEY` la app publicada no envía correos: las invitaciones y los recordatorios fallan.
+5. **Domains** → añade el dominio, puerto 3000, y activa **HTTPS** con Let's Encrypt. El registro DNS
+   tiene que existir antes, o el certificado no se puede emitir.
+6. **Deploy**. Con la publicación automática activada, los siguientes los lanza cada subida a `main`.
+7. En Supabase → Authentication → URL Configuration, pon la dirección del dominio como **Site URL** y
+   añade `https://TU-DOMINIO/auth/confirm` a las **Redirect URLs**. Sin eso, el enlace de «he olvidado
+   mi contraseña», que lo envía Supabase, no vuelve a la app publicada.
+
+8. **Límite de peticiones en el proxy** (`docs/security.md` · «Límites y errores»). En la aplicación →
+   **Advanced** → **Traefik**, se define un límite por dirección IP y se le pone a la entrada segura:
+
+   ```yaml
+   http:
+     middlewares:
+       carpeta-fiscal-limite:
+         rateLimit:
+           average: 50
+           burst: 100
+           period: 1s
+   ```
+
+   y, en el router `...-websecure-1`, `middlewares: [carpeta-fiscal-limite]`. Deja pasar el uso normal
+   y corta las ráfagas con un «demasiadas peticiones». Ojo: si se cambia el dominio desde Dokploy, este
+   archivo se vuelve a generar y hay que comprobar que el límite sigue ahí.
+
+Las variables `EMAIL_TRANSPORT` y `AI_TRANSPORT` son solo de las pruebas: en producción no se ponen.
 
 ## 4. El trabajo diario de los recordatorios
 
-Dokploy → **Schedules** → nueva tarea, una vez al día (por ejemplo a las 8:00):
+Dokploy → la aplicación → **Schedules** → nueva tarea, una vez al día (a las 8:00, zona `Europe/Madrid`),
+que se ejecuta **dentro del contenedor de la app**, con `sh`:
 
 ```
-curl -fsS -X POST https://TU-DOMINIO/api/recordatorios -H "Authorization: Bearer EL-CRON-SECRET"
+node -e "fetch('http://127.0.0.1:3000/api/recordatorios',{method:'POST',redirect:'manual',headers:{authorization:'Bearer '+process.env.CRON_SECRET}}).then(async r=>{console.log(r.status,await r.text());process.exit(r.ok?0:1)}).catch(e=>{console.error(e.message);process.exit(1)})"
 ```
 
-Sin esa cabecera, la dirección responde que no está permitido (M5).
+Se hace así, y no con `curl` desde fuera, por dos motivos: la imagen no trae `curl`, y de esta forma el
+secreto se lee de la variable del propio contenedor y no queda escrito en la tarea. Si la tarea acaba con
+error, es que la app no ha respondido bien.
+
+Sin esa cabecera, la dirección responde que no está permitido (M5). El proxy de la app la deja pasar sin
+sesión, como al acceso y a `/auth`: quien la llama es el servidor, no una persona.
 
 ## 5. La base de datos
 

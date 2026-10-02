@@ -4,7 +4,9 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { env } from '@/lib/env'
 
 // Rutas que se pueden abrir sin haber iniciado sesión.
-const PUBLIC_PATHS = ['/acceso', '/auth']
+// `/api/recordatorios` la llama el programador de tareas del servidor, que no tiene sesión: lo que la
+// protege es el secreto compartido que comprueba la propia ruta (M5).
+const PUBLIC_PATHS = ['/acceso', '/auth', '/api/recordatorios']
 
 /**
  * En Next.js 16 este archivo se llama `proxy` (antes era `middleware`) y siempre se ejecuta en Node.js.

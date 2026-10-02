@@ -113,6 +113,10 @@ correo por cada una a los usuarios de esa empresa y apunta la fecha del envío p
 secreto no hace nada. El asesor puede mandar el mismo recordatorio a mano, pero no dos veces en menos de
 24 horas.
 
+Quien llama no ha iniciado sesión, así que el proxy deja pasar esta dirección sin sesión, igual que el
+acceso (`/acceso`) y la confirmación de los enlaces de correo (`/auth`): la protege el secreto, que
+comprueba la propia ruta.
+
 Si un correo no sale, el envío sigue con los demás. Una solicitud solo se da por recordada cuando el
 correo ha salido para alguien de esa empresa: si no, el trabajo diario lo reintenta al día siguiente y
 responde también cuántas se han quedado sin salir.
