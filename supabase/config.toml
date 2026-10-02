@@ -16,14 +16,15 @@ major_version = 17
 [db.seed]
 enabled = false
 
+# El panel de Supabase, para ver las tablas, los usuarios y los archivos en el navegador:
+# http://127.0.0.1:54323. La app no lo necesita; está para mirar los datos. Quien vaya justo de memoria
+# puede apagarlo aquí y volver a arrancar.
+[studio]
+enabled = true
+
 # --- Piezas apagadas -----------------------------------------------------------------------------
 # La app usa cuatro piezas de Supabase: la base de datos, el acceso, la API de datos y los archivos.
 # Las demás se quedan apagadas para gastar la menor memoria posible.
-
-# El panel para ver las tablas en el navegador (http://127.0.0.1:54323). Quien quiera mirar los datos
-# puede encenderlo aquí y volver a arrancar.
-[studio]
-enabled = false
 
 # Avisos al instante entre navegadores: la app no los usa.
 [realtime]

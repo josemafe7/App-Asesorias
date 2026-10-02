@@ -54,8 +54,9 @@ silencio.
 - El seed y la limpieza de las pruebas borran datos con la clave secreta, así que se niegan a ejecutarse
   si la dirección que reciben no es la del Supabase local (`isLocalSupabase`, en `scripts/seed-data.mts`).
   Las pruebas no cargan `.env.local`: lanzadas por otro camino que no sea `pnpm test:e2e`, se paran.
-- En el Supabase local solo van datos de ejemplo. Sus claves son públicas y Docker publica sus puertos
-  (54321, 54322 y 54324) en todas las conexiones de red del equipo: lo que impide que otro equipo de la
+- En el Supabase local solo van datos de ejemplo. Sus claves son públicas, su panel
+  (Studio) no pide contraseña y Docker publica sus puertos (54321 a 54324) en todas las conexiones de red
+  del equipo: lo que impide que otro equipo de la
   misma red entre es el cortafuegos del sistema, que por defecto lo bloquea. La CLI de Supabase no deja
   limitarlo al propio equipo. En una red que no es de confianza, se para con `pnpm db:stop` al terminar.
 - El proyecto de la nube nació como el de desarrollo y hoy sirve una demo con datos de ejemplo. Antes de

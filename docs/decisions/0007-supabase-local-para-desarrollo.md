@@ -34,12 +34,13 @@ reglas por filas, mismo inicio de sesión y mismo almacén. Sigue valiendo la no
 
 La pega que se temía era la memoria. Con todo encendido, Supabase recomienda dar 7 GB a Docker; con solo
 las piezas que usa esta app (base de datos, acceso, API de datos, archivos, su puerta de entrada y el
-buzón de pruebas) se queda entre 420 y 500 MB, medido el día de la decisión. Las piezas apagadas están en
-`supabase/config.toml`.
+buzón de pruebas) se queda entre 420 y 500 MB, medido el día de la decisión. Se enciende además el panel
+de Supabase (Studio), que la app no necesita pero sirve para ver los datos en el navegador: con él, unos
+750 MB. Las piezas apagadas están en `supabase/config.toml`, y el panel se puede apagar ahí.
 
 ## Consecuencias
 
-- Hace falta Docker abierto para trabajar en local. La primera vez se descargan unos 3,5 GB.
+- Hace falta Docker abierto para trabajar en local. La primera vez se descargan unos 6 GB.
 - `pnpm dev`, `pnpm seed` y `pnpm test:e2e` pasan por `scripts/local.mts`, que levanta el Supabase local y
   le pasa su dirección y sus claves al comando, por encima de lo que haya en `.env.local`. Así nada de lo
   que se ejecuta en local puede acabar en el Supabase de la nube. `pnpm build` no pasa por ahí: es el que

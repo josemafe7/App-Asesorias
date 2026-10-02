@@ -22,12 +22,15 @@ En `http://localhost:3000`, con los usuarios de «Cómo probarla».
 
 Ese último comando levanta en tu equipo un Supabase propio dentro de Docker (la base de datos, las
 cuentas y los archivos), crea las tablas, carga los datos de ejemplo la primera vez y arranca la app. La
-primera vez descarga unos 3,5 GB y tarda unos minutos; después, unos segundos. En marcha ocupa alrededor
-de medio giga de memoria, porque solo se encienden las piezas que la app usa (`supabase/config.toml`).
+primera vez descarga unos 6 GB y tarda unos minutos; después, unos segundos. En marcha ocupa unos
+750 MB de memoria, porque solo se encienden las piezas que la app usa y el panel de Supabase
+(`supabase/config.toml`).
 
 Todo lo que hagas en local se queda en tu equipo: nada toca el Supabase de la app publicada. Usa el
 Supabase local solo con datos de ejemplo: sus claves son las mismas en todos los equipos.
 
+- **Para ver las tablas, los usuarios y los archivos:** `http://127.0.0.1:54323`, el panel de Supabase.
+  Si vas justo de memoria, se apaga en `supabase/config.toml` y te ahorras unos 350 MB.
 - **Para parar el Supabase local:** `pnpm db:stop`. Los datos se conservan para la próxima vez.
 - **Para empezar de cero:** `pnpm exec supabase db reset` borra la base de datos local y la vuelve a
   crear; el siguiente `pnpm dev` carga otra vez los datos de ejemplo.

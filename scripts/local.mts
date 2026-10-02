@@ -61,7 +61,8 @@ if (!run('pnpm exec supabase start', { quiet: true }).ok) {
 
 // 3. Su dirección y sus claves.
 const status = run('pnpm exec supabase status -o json', { quiet: true })
-let local: { API_URL?: string; PUBLISHABLE_KEY?: string; SECRET_KEY?: string } = {}
+let local: { API_URL?: string; PUBLISHABLE_KEY?: string; SECRET_KEY?: string; STUDIO_URL?: string } =
+  {}
 try {
   local = JSON.parse(status.output)
 } catch {
@@ -99,7 +100,9 @@ if (!isSeed) {
   }
 }
 
-console.log(`Supabase local: en marcha en ${local.API_URL}\n`)
+console.log(`Supabase local: en marcha en ${local.API_URL}`)
+if (local.STUDIO_URL) console.log(`Supabase local: el panel para ver los datos, en ${local.STUDIO_URL}`)
+console.log('')
 
 // 5. El comando pedido, con sus argumentos tal cual.
 const quoted = [command, ...args].map((part) => (/\s/.test(part) ? `"${part}"` : part)).join(' ')
