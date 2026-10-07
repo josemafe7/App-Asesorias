@@ -261,7 +261,7 @@ clientes.
       - [x] 3e · Recordatorios y exportación CSV (M1-M8, X1-X6)
       - [x] 3f · Publicación en el VPS
 
-      Publicada el 2026-10-02 en `https://asesorias.dominia.site`. `pnpm test:e2e` pasa entero desde la
+      Publicada el 2026-10-02. `pnpm test:e2e` pasa entero desde la
       fase 4, contra el Supabase local. El correo funciona en la app publicada desde ese mismo día, con
       Resend: probadas la invitación (A5) y «he olvidado mi contraseña» (A6). Para dar la fase por
       cerrada falta: hacer por el dominio el recorrido completo de «Cómo se comprueba que todo

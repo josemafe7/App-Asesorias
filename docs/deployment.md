@@ -13,11 +13,11 @@ El día que entren datos reales, producción pasa a un proyecto nuevo y limpio, 
 
 | Qué | Dónde |
 |---|---|
-| Dirección | `https://asesorias.dominia.site` (registro A hacia la IP del VPS) |
-| Panel | Dokploy → «Proyecto Asesorías» → entorno `production` → aplicación `carpeta-fiscal` |
+| Dirección | `https://TU-DOMINIO` (registro A hacia la IP del VPS) |
+| Panel | Dokploy → el proyecto → entorno `production` → la aplicación |
 | Código | GitHub `josemafe7/App-Asesorias`, rama `main`, con el `Dockerfile` del repositorio |
 | Publicación | **Automática**: cada subida a `main` construye y publica sola. Subir a GitHub es publicar |
-| Correo | Resend, plan gratuito, con el dominio `avisos.dominia.site` verificado (región de la UE). Remitente: `Carpeta Fiscal <no-responder@avisos.dominia.site>` |
+| Correo | Resend, plan gratuito, con un subdominio de correo verificado (región de la UE). Remitente: `Carpeta Fiscal <avisos@tudominio.es>` |
 | Tarea diaria | Schedule «Recordatorios diarios», a las 8:00 de `Europe/Madrid`. **Creada pero apagada**: ver abajo |
 
 El correo funciona desde el 2026-10-02, probado en la app publicada: la invitación, que la envía la app
